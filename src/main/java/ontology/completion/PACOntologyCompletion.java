@@ -1,6 +1,7 @@
 package ontology.completion;
 
 import java.util.Set;
+import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.Hashtable;
 
@@ -9,6 +10,7 @@ import org.semanticweb.owlapi.apibinding.OWLManager;
 import org.semanticweb.owlapi.model.IRI;
 import org.semanticweb.owlapi.model.OWLClassExpression;
 import org.semanticweb.owlapi.model.OWLDataFactory;
+import org.semanticweb.owlapi.model.OWLException;
 import org.semanticweb.owlapi.model.OWLOntology;
 import org.semanticweb.owlapi.model.OWLOntologyCreationException;
 import org.semanticweb.owlapi.model.OWLOntologyManager;
@@ -22,15 +24,21 @@ import org.semanticweb.owlapi.reasoner.OWLReasonerFactory;
 public class PACOntologyCompletion {
 	
 	private OWLOntology ontology;
+	private OWLOntology auxiliaryOntology;
 	private OWLOntologyManager om;
 	private OWLDataFactory df;
 	private OWLReasonerFactory rf;
 	private OWLReasoner reasoner;
+	private OWLReasoner auxiliaryReasoner;
 	
 	private Set<OWLClassExpression> baseSet;
 	private ExpertOracle expert;
 	private SamplingOracle sampler;
 
+	private int expertQueries;
+	private int samplerQueries;
+
+	private Hashtable<OWLClassExpression, ArrayList<Set<OWLClassExpression>>> wrongImplicationHash;
 
 	/**
 	 * @param baseSet
@@ -48,35 +56,74 @@ public class PACOntologyCompletion {
 		// or let the user select from a list?
 
 		OWLOntology ontology = null;
+		OWLOntology auxiliaryOntology = null;
 		try {
 			ontology = om.loadOntology(ontologyIRI);
+			System.out.println("Successfully loaded ontology");
+			auxiliaryOntology = OWLManager.createOWLOntologyManager().loadOntology(ontologyIRI);
 		}
 		catch (OWLOntologyCreationException e) {
 			System.err.print("Error loading ontology");
 			System.exit(-1);
 		}
 		this.ontology = ontology;
+		this.auxiliaryOntology = auxiliaryOntology;
 		
-		this.reasoner = rf.createReasoner(ontology);
+		this.reasoner = rf.createNonBufferingReasoner(ontology);
 		this.reasoner.precomputeInferences(InferenceType.CLASS_HIERARCHY);
+		this.auxiliaryReasoner = rf.createNonBufferingReasoner(auxiliaryOntology);
+		this.auxiliaryReasoner.precomputeInferences(InferenceType.CLASS_HIERARCHY);
 
 		this.expert = expert;
 		this.sampler = sampler;
 		
+		this.expertQueries = 0;
 		
+		this.wrongImplicationHash = null;
+	}
+
+	private boolean isImplicationValid(Set<OWLClassExpression> premise, OWLClassExpression conclusion) {
+		for (Set<OWLClassExpression> wrongPremise : wrongImplicationHash.get(conclusion)) {
+			if (wrongPremise.containsAll(premise)) {
+				return false;
+			}
+		}
+
+		OWLClassExpression queryConjunction = premise.isEmpty() ? df.getOWLThing() : this.df.getOWLObjectIntersectionOf(premise);
+		OWLSubClassOfAxiom ax = df.getOWLSubClassOfAxiom(queryConjunction, conclusion);
+		
+		if (this.auxiliaryReasoner.isEntailed(ax)) {
+			return true;
+		}
+
+		expertQueries++;
+		if (this.expert.holds(ax)) {
+			this.auxiliaryOntology.add(ax);
+			System.out.println("Added auxiliary axiom: " + ax);
+			return true;
+		}
+
+		wrongImplicationHash.get(conclusion).add(premise);
+		return false;
 	}
 	
 	public Set<OWLClassExpression> getCounterExample(ImplicationList imps, int k) {
+		int samples = 0;
 		for (int i = 0; i < k; ++i) {
 			Set<OWLClassExpression> query = this.sampler.sample();
+			samples++;
+			samplerQueries++;
 			Set<OWLClassExpression> closure = imps.closure(query);
-			Set<OWLClassExpression> completion = complete(closure);
-			if (!closure.equals(completion)) {
-				return(closure);
+		
+			for (OWLClassExpression c : this.baseSet) {
+				if (!closure.contains(c) && isImplicationValid(closure, c)) {
+						System.out.println("Samples at this iteration: " + samples);
+						return closure;
+				}
 			}
 		}
-		
-		return(null);
+		System.out.println("Generated " + samples + "samples");		
+		return null;
 	}
 	
 	/**
@@ -106,10 +153,8 @@ public class PACOntologyCompletion {
 
 		Set<OWLClassExpression> completion = new HashSet<OWLClassExpression>(query);
 		for (OWLClassExpression c : this.baseSet) {
-			if (!query.contains(c)) {
-				OWLSubClassOfAxiom ax = df.getOWLSubClassOfAxiom(queryConjunction, c);
-				if (this.reasoner.isEntailed(ax) || this.expert.holds(ax))
-					completion.add(c);
+			if (!query.contains(c) && isImplicationValid(query, c)) {
+				completion.add(c);
 			}
 		}
 		
@@ -121,14 +166,21 @@ public class PACOntologyCompletion {
 	 * @param ontology the initial ontology
 	 */
 	public OWLOntology upperApproximation(double epsilon, double delta, IRI resultOntologyIRI) {
+		expertQueries = 0;
 		ImplicationList imps = new ImplicationList(baseSet);
 		Set<OWLClassExpression> counterExample;
+
 		
 		// Hashtable for storing implication -> GCI. 
 		// Later used to find out the GCI to remove from the ontology
 		// Key: implicaton 
 		// Value: corresponding GCI
-		Hashtable<Implication, OWLSubClassOfAxiom> implicationAxiomHash = new Hashtable<>();
+		// Hashtable<Implication, OWLSubClassOfAxiom> implicationAxiomHash = new Hashtable<>();
+
+		wrongImplicationHash = new Hashtable<>();
+		for (OWLClassExpression c : this.baseSet) {
+			wrongImplicationHash.put(c, new ArrayList<Set<OWLClassExpression>>());
+		}
 		
 		int iteration = 1;
 		boolean found = false;
@@ -156,16 +208,17 @@ public class PACOntologyCompletion {
 						imps.set(i, newImp);
 						
 						// get the GCI corresponding to imp
-						OWLSubClassOfAxiom ax = implicationAxiomHash.get(imp);
+						// OWLSubClassOfAxiom ax = implicationAxiomHash.get(imp);
 						// remove the GCI constructed from imp from the ontology
-						this.ontology.remove(ax);
-						System.out.println("Removed axiom: " + ax);
+						// this.ontology.remove(ax);
 
 						// add the GCI constructed from newImp to the ontology
 						OWLSubClassOfAxiom newAx = newImp.toGCI();
-						implicationAxiomHash.put(newImp, newAx);
-						this.ontology.add(newAx);
-						System.out.println("Added axiom: " + newAx);
+						// implicationAxiomHash.put(newImp, newAx);
+						// this.ontology.add(newAx);
+						this.auxiliaryOntology.add(newAx);
+						System.out.println("Added non-auxiliary axiom: " + newAx);
+
 						if (!counterExample.containsAll(newConclusion)) {
 						    break;
 						}
@@ -180,14 +233,31 @@ public class PACOntologyCompletion {
 				if (imps.add(newImp)) {
 					// add the GCI constructed from newImp to the ontology
 					OWLSubClassOfAxiom newAx = newImp.toGCI();
-					implicationAxiomHash.put(newImp, newAx);
-					this.ontology.add(newAx);
-					System.out.println("Added axiom: " + newAx);
+					// implicationAxiomHash.put(newImp, newAx);
+					// this.ontology.add(newAx);
+					this.auxiliaryOntology.add(newAx);
+					System.out.println("Added non-auxiliary axiom: " + newAx);
+				} else {
+					System.out.println("Could not add implication: " + newImp);
+
 				}
 			}
 			++iteration;
 		}
-		
+
+		for (int i = 0; i < imps.size(); ++i) {
+			OWLSubClassOfAxiom ax = imps.get(i).toGCI();
+			if (this.reasoner.isEntailed(ax)) {
+				System.out.println("Did not add axiom: " + ax);
+			} else {
+				this.ontology.add(ax);
+				System.out.println("Added axiom: " + ax);
+			}
+		}
+
+		System.out.println("Expert queries: " + expertQueries);
+		System.out.println("Samples generated: " + samplerQueries);
+
 		try {
 			ontology.saveOntology(resultOntologyIRI);
 		} catch (OWLOntologyStorageException e) {
