@@ -83,8 +83,6 @@ public class PACOntologyCompletion {
 	}
 
 	private boolean isImplicationValid(Set<OWLClassExpression> premise, OWLClassExpression conclusion) {
-		// For pretty printing axioms
-		String expertOntologyPrefix = "<" + this.expert.getExpertOntology().getOntologyID().getOntologyIRI().get().getIRIString() + "#";
 
 		for (Set<OWLClassExpression> wrongPremise : wrongImplicationHash.get(conclusion)) {
 			if (wrongPremise.containsAll(premise)) {
@@ -102,7 +100,7 @@ public class PACOntologyCompletion {
 		expertQueries++;
 		if (this.expert.holds(ax)) {
 			this.auxiliaryOntology.add(ax);
-			System.out.println("Added auxiliary axiom: " + ax.toString().replace(expertOntologyPrefix, "").replace(">", ""));
+			System.out.println("Added auxiliary axiom: " + ax);
 			return true;
 		}
 
@@ -173,9 +171,6 @@ public class PACOntologyCompletion {
 		ImplicationList imps = new ImplicationList(baseSet);
 		Set<OWLClassExpression> counterExample;
 
-		// For pretty printing axioms
-		String expertOntologyPrefix = "<" + this.expert.getExpertOntology().getOntologyID().getOntologyIRI().get().getIRIString() + "#";
-		
 		// Hashtable for storing implication -> GCI. 
 		// Later used to find out the GCI to remove from the ontology
 		// Key: implicaton 
@@ -222,7 +217,7 @@ public class PACOntologyCompletion {
 						// implicationAxiomHash.put(newImp, newAx);
 						// this.ontology.add(newAx);
 						this.auxiliaryOntology.add(newAx);
-						System.out.println("Added non-auxiliary axiom: " + newAx.toString().replace(expertOntologyPrefix, "").replace(">", ""));
+						System.out.println("Added non-auxiliary axiom: " + newAx);
 
 						if (!counterExample.containsAll(newConclusion)) {
 						    break;
@@ -241,7 +236,7 @@ public class PACOntologyCompletion {
 					// implicationAxiomHash.put(newImp, newAx);
 					// this.ontology.add(newAx);
 					this.auxiliaryOntology.add(newAx);
-					System.out.println("Added non-auxiliary axiom: " + newAx.toString().replace(expertOntologyPrefix, "").replace(">", ""));
+					System.out.println("Added non-auxiliary axiom: " + newAx);
 				} else {
 					System.out.println("Could not add implication: " + newImp);
 
@@ -253,10 +248,10 @@ public class PACOntologyCompletion {
 		for (int i = 0; i < imps.size(); ++i) {
 			OWLSubClassOfAxiom ax = imps.get(i).toGCI();
 			if (this.reasoner.isEntailed(ax)) {
-				System.out.println("Did not add axiom: " + ax.toString().replace(expertOntologyPrefix, "").replace(">", ""));
+				System.out.println("Did not add axiom: " + ax);
 			} else {
 				this.ontology.add(ax);
-				System.out.println("Added axiom: " + ax.toString().replace(expertOntologyPrefix, "").replace(">", ""));
+				System.out.println("Added axiom: " + ax);
 			}
 		}
 
