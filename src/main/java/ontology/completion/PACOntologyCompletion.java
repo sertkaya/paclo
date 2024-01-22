@@ -100,7 +100,7 @@ public class PACOntologyCompletion {
 		expertQueries++;
 		if (this.expert.holds(ax)) {
 			this.auxiliaryOntology.add(ax);
-			System.out.println("Added auxiliary axiom: " + ax);
+			System.out.println("Added auxiliary axiom: " + prettyPrintAxiom(ax));
 			return true;
 		}
 
@@ -162,6 +162,15 @@ public class PACOntologyCompletion {
 		return(completion);
 	}
 	
+	public String prettyPrintAxiom(OWLSubClassOfAxiom ax) {
+		// not a neat solution, but works
+		String axStr = ax.toString();
+		int i = axStr.lastIndexOf("<");
+		int j = axStr.lastIndexOf("/") + 1;
+		String pattern = axStr.substring(i, j);
+		String s = axStr.replaceAll(pattern, "").replaceAll(">", "");
+		return(s);
+	}
 	/**
 	 * Computes an upper approximation of expert's view of the domain.
 	 * @param ontology the initial ontology
@@ -217,7 +226,7 @@ public class PACOntologyCompletion {
 						// implicationAxiomHash.put(newImp, newAx);
 						// this.ontology.add(newAx);
 						this.auxiliaryOntology.add(newAx);
-						System.out.println("Added non-auxiliary axiom: " + newAx);
+						System.out.println("Added non-auxiliary axiom: " + prettyPrintAxiom(newAx));
 
 						if (!counterExample.containsAll(newConclusion)) {
 						    break;
@@ -236,7 +245,7 @@ public class PACOntologyCompletion {
 					// implicationAxiomHash.put(newImp, newAx);
 					// this.ontology.add(newAx);
 					this.auxiliaryOntology.add(newAx);
-					System.out.println("Added non-auxiliary axiom: " + newAx);
+					System.out.println("Added non-auxiliary axiom: " + prettyPrintAxiom(newAx));
 				} else {
 					System.out.println("Could not add implication: " + newImp);
 
@@ -248,10 +257,10 @@ public class PACOntologyCompletion {
 		for (int i = 0; i < imps.size(); ++i) {
 			OWLSubClassOfAxiom ax = imps.get(i).toGCI();
 			if (this.reasoner.isEntailed(ax)) {
-				System.out.println("Did not add axiom: " + ax);
+				System.out.println("Did not add axiom: " + prettyPrintAxiom(ax));
 			} else {
 				this.ontology.add(ax);
-				System.out.println("Added axiom: " + ax);
+				System.out.println("Added axiom: " + prettyPrintAxiom(ax));
 			}
 		}
 
