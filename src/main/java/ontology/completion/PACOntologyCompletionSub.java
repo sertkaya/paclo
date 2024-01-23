@@ -20,8 +20,11 @@ import org.semanticweb.owlapi.reasoner.InferenceType;
 import org.semanticweb.owlapi.reasoner.OWLReasoner;
 import org.semanticweb.owlapi.reasoner.OWLReasonerFactory;
 
+import javafx.util.Pair;
 
-public class PACOntologyCompletion {
+
+// with subsumption queries
+public class PACOntologyCompletionSub {
 	
 	private OWLOntology ontology;
 	private OWLOntology auxiliaryOntology;
@@ -33,7 +36,7 @@ public class PACOntologyCompletion {
 	
 	private Set<OWLClassExpression> baseSet;
 	private ExpertOracle expert;
-	private SamplingOracle sampler;
+	private SubsumptionSamplingOracle sampler;
 
 	private int expertQueries;
 	private int samplerQueries;
@@ -46,7 +49,10 @@ public class PACOntologyCompletion {
 	 * @param expert: The domain expert 
 	 * @param sampler
 	 */
-	public PACOntologyCompletion(IRI ontologyIRI, Set<OWLClassExpression> baseSet, ExpertOracle expert, SamplingOracle sampler) {
+	public PACOntologyCompletionSub(IRI ontologyIRI,
+                                    Set<OWLClassExpression> baseSet, 
+                                    ExpertOracle expert, 
+                                    SubsumptionSamplingOracle sampler) {
 		om = OWLManager.createOWLOntologyManager();
 		df = om.getOWLDataFactory();
 		rf = new ReasonerFactory();
@@ -111,19 +117,17 @@ public class PACOntologyCompletion {
 	public Set<OWLClassExpression> getCounterExample(ImplicationList imps, int k) {
 		int samples = 0;
 		for (int i = 0; i < k; ++i) {
-			Set<OWLClassExpression> query = this.sampler.sample();
+			Pair<Set<OWLClassExpression>, OWLClassExpression>  query = this.sampler.sample();
 			samples++;
 			samplerQueries++;
-			Set<OWLClassExpression> closure = imps.closure(query);
-		
-			for (OWLClassExpression c : this.baseSet) {
-				if (!closure.contains(c) && isImplicationValid(closure, c)) {
-						System.out.println("Samples at this iteration: " + samples);
-						return closure;
-				}
+            Set<OWLClassExpression> premise = query.getKey();
+			Set<OWLClassExpression> closure = imps.closure(premise);
+            if (!closure.contains(query.getValue()) && isImplicationValid(premise, query.getValue())) {
+                System.out.println("Samples at this iteration: " + samples);
+                return closure;
 			}
 		}
-		System.out.println("Generated " + samples + "samples");		
+		System.out.println("Generated " + samples + " samples");		
 		return null;
 	}
 	

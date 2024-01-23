@@ -135,12 +135,14 @@ public class PACco {
 		
 		Set<OWLClassExpression> baseSet = readBaseSet(baseSetFile, expert.getExpertOntology());
 		
-		SamplingOracle sampler = new RandomSampler(baseSet);
+		// SamplingOracle sampler = new RandomSampler(baseSet);
+		SubsumptionSamplingOracle sampler = new RandomSubsumptionSampler(baseSet);
 
 		IRI initialOntologyIRI = IRI.create(initialOntology);
 		IRI resultOntologyIRI = IRI.create(resultOntology);
 
-		PACOntologyCompletion pacCompletion = new PACOntologyCompletion(initialOntologyIRI, baseSet, expert, sampler);
+		// PACOntologyCompletion pacCompletion = new PACOntologyCompletion(initialOntologyIRI, baseSet, expert, sampler);
+		PACOntologyCompletionSub pacCompletion = new PACOntologyCompletionSub(initialOntologyIRI, baseSet, expert, sampler);
 		pacCompletion.upperApproximation(epsilon, delta, resultOntologyIRI);
 
 	}
