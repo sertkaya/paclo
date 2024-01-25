@@ -5,6 +5,8 @@ import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.Hashtable;
 
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 import org.semanticweb.HermiT.ReasonerFactory;
 import org.semanticweb.owlapi.apibinding.OWLManager;
 import org.semanticweb.owlapi.model.IRI;
@@ -41,6 +43,8 @@ public class PACOntologyCompletionSub {
 	private int expertQueries;
 	private int samplerQueries;
 
+	private Logger logger = LogManager.getLogger();
+
 	private Hashtable<OWLClassExpression, ArrayList<Set<OWLClassExpression>>> wrongImplicationHash;
 
 	/**
@@ -65,11 +69,11 @@ public class PACOntologyCompletionSub {
 		OWLOntology auxiliaryOntology = null;
 		try {
 			ontology = om.loadOntology(ontologyIRI);
-			System.out.println("Successfully loaded ontology");
+		    logger.debug("Successfully loaded ontology");
 			auxiliaryOntology = OWLManager.createOWLOntologyManager().loadOntology(ontologyIRI);
 		}
 		catch (OWLOntologyCreationException e) {
-			System.err.print("Error loading ontology: " + e.getMessage());
+		    logger.fatal("Error loading ontology");
 			System.exit(-1);
 		}
 		this.ontology = ontology;
@@ -106,7 +110,7 @@ public class PACOntologyCompletionSub {
 		expertQueries++;
 		if (this.expert.holds(ax)) {
 			this.auxiliaryOntology.add(ax);
-			System.out.println("Added auxiliary axiom: " + prettyPrintAxiom(ax));
+			logger.debug("Added auxiliary axiom: " + prettyPrintAxiom(ax));
 			return true;
 		}
 
@@ -123,11 +127,11 @@ public class PACOntologyCompletionSub {
             Set<OWLClassExpression> premise = query.getKey();
 			Set<OWLClassExpression> closure = imps.closure(premise);
             if (!closure.contains(query.getValue()) && isImplicationValid(premise, query.getValue())) {
-                System.out.println("Samples at this iteration: " + samples);
+                logger.info("Samples at this iteration: " + samples);
                 return closure;
 			}
 		}
-		System.out.println("Generated " + samples + " samples");		
+		logger.info("Generated " + samples + " samples");		
 		return null;
 	}
 	
@@ -199,7 +203,7 @@ public class PACOntologyCompletionSub {
 		boolean found = false;
 
 		while ((counterExample = getCounterExample(imps, callsToSamplingOracle(epsilon, delta, iteration))) != null) { 
-			System.out.println("iteration:" + iteration);
+			logger.info("iteration:" + iteration);
 			found = false;
 			Implication imp = null;
 			for (int i = 0; i < imps.size(); i++) {
@@ -230,7 +234,7 @@ public class PACOntologyCompletionSub {
 						// implicationAxiomHash.put(newImp, newAx);
 						// this.ontology.add(newAx);
 						this.auxiliaryOntology.add(newAx);
-						System.out.println("Added non-auxiliary axiom: " + prettyPrintAxiom(newAx));
+						logger.debug("Added non-auxiliary axiom: " + prettyPrintAxiom(newAx));
 
 						if (!counterExample.containsAll(newConclusion)) {
 						    break;
@@ -249,9 +253,9 @@ public class PACOntologyCompletionSub {
 					// implicationAxiomHash.put(newImp, newAx);
 					// this.ontology.add(newAx);
 					this.auxiliaryOntology.add(newAx);
-					System.out.println("Added non-auxiliary axiom: " + prettyPrintAxiom(newAx));
+					logger.debug("Added non-auxiliary axiom: " + prettyPrintAxiom(newAx));
 				} else {
-					System.out.println("Could not add implication: " + newImp);
+					logger.debug("Could not add implication: " + newImp);
 
 				}
 			}
@@ -261,20 +265,21 @@ public class PACOntologyCompletionSub {
 		for (int i = 0; i < imps.size(); ++i) {
 			OWLSubClassOfAxiom ax = imps.get(i).toGCI();
 			if (this.reasoner.isEntailed(ax)) {
-				System.out.println("Did not add axiom: " + prettyPrintAxiom(ax));
+				logger.debug("Did not add axiom: " + prettyPrintAxiom(ax));
 			} else {
 				this.ontology.add(ax);
-				System.out.println("Added axiom: " + prettyPrintAxiom(ax));
+				logger.debug("Added axiom: " + prettyPrintAxiom(ax));
 			}
 		}
 
-		System.out.println("Expert queries: " + expertQueries);
-		System.out.println("Samples generated: " + samplerQueries);
+	    logger.info("Total iterations: " + (iteration - 1));
+		logger.info("Expert queries: " + expertQueries);
+		logger.info("Samples generated: " + samplerQueries);
 
 		try {
 			ontology.saveOntology(resultOntologyIRI);
 		} catch (OWLOntologyStorageException e) {
-			System.err.println("Error while saving ontology");
+			logger.fatal("Error while saving ontology");
 			e.printStackTrace();
 		}
 		return(ontology);
