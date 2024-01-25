@@ -27,7 +27,11 @@ import org.semanticweb.owlapi.model.OWLOntology;
 import org.semanticweb.owlapi.model.OWLOntologyManager;
 import org.semanticweb.owlapi.util.mansyntax.ManchesterOWLSyntaxParser;
 
+import org.apache.logging.log4j.Logger;
+import org.apache.logging.log4j.LogManager;
+
 public class PACco {
+	protected static final Logger logger = LogManager.getLogger();
 	
 	public static Set<OWLClassExpression> readBaseSet(File f, OWLOntology o) {
 		Set<OWLClassExpression> baseSet = new HashSet<OWLClassExpression>();
@@ -83,7 +87,7 @@ public class PACco {
 		try {
 			reader = new BufferedReader(new FileReader(f));
 		} catch (FileNotFoundException e) {
-			System.err.println("File " + f.getAbsolutePath() + "not found");
+		    logger.fatal("File " + f.getAbsolutePath() + " not found");
 			e.printStackTrace();
 		}
 	    OWLClassExpression clsExpr;
@@ -101,7 +105,7 @@ public class PACco {
 				line = reader.readLine();
 			}
 		} catch (IOException e) {
-			System.err.println("Error reading from file");
+			logger.fatal("Error reading from file");
 			e.printStackTrace();
 		}
  
@@ -109,7 +113,7 @@ public class PACco {
 	    try {
 			reader.close();
 		} catch (IOException e) {
-			System.err.println("Error closing file");
+			logger.error("Error closing file");
 			e.printStackTrace();
 		}
 	    
@@ -119,7 +123,7 @@ public class PACco {
 	public static void main(String[] args) {
 
 		if (args.length != 6) {
-			System.err.println("Usage: epsilon delta initialOntology expertOntology baseSetFile outputOntology");
+			logger.fatal("Usage: epsilon delta initialOntology expertOntology baseSetFile outputOntology");
 			System.exit(-1);
 		}
 		double epsilon = Double.parseDouble(args[0]);
