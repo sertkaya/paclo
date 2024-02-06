@@ -99,8 +99,13 @@ public class PACco {
 					line = reader.readLine();
 					continue;
 				}
-				parser.setStringToParse(line);
-				clsExpr = parser.parseClassExpression();
+				if (line.equals("owl:Nothing")) {
+					clsExpr = df.getOWLNothing();
+				}
+				else {
+					parser.setStringToParse(line);
+					clsExpr = parser.parseClassExpression();
+				}
 				baseSet.add(clsExpr);
 				line = reader.readLine();
 			}
