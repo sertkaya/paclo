@@ -11,8 +11,8 @@ import org.semanticweb.owlapi.model.OWLOntologyManager;
 
 import ontology.learning.Implication;
 import ontology.learning.ImplicationList;
-import ontology.learning.RandomSampler;
-import ontology.learning.SamplingOracle;
+import ontology.learning.sampler.RandomSampler;
+import ontology.learning.sampler.SamplingOracle;
 
 public class TestRandomSampler {
 

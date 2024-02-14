@@ -1,4 +1,4 @@
-package ontology.learning;
+package ontology.learning.sampler;
 
 import java.util.HashSet;
 import java.util.Random;

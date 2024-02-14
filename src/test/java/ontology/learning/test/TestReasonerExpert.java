@@ -13,13 +13,13 @@ import org.semanticweb.owlapi.model.OWLOntologyManager;
 import org.semanticweb.owlapi.model.OWLSubClassOfAxiom;
 import org.semanticweb.owlapi.util.IRIComparator;
 
-import ontology.learning.ExpertOracle;
 import ontology.learning.Implication;
 import ontology.learning.ImplicationList;
 import ontology.learning.PACOntologyLearning;
-import ontology.learning.RandomSampler;
-import ontology.learning.ReasonerExpert;
-import ontology.learning.SamplingOracle;
+import ontology.learning.expert.ExpertOracle;
+import ontology.learning.expert.ReasonerExpert;
+import ontology.learning.sampler.RandomSampler;
+import ontology.learning.sampler.SamplingOracle;
 
 public class TestReasonerExpert {
 

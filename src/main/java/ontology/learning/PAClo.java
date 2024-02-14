@@ -27,6 +27,11 @@ import org.semanticweb.owlapi.model.OWLOntology;
 import org.semanticweb.owlapi.model.OWLOntologyManager;
 import org.semanticweb.owlapi.util.mansyntax.ManchesterOWLSyntaxParser;
 
+import ontology.learning.expert.ExpertOracle;
+import ontology.learning.expert.ReasonerExpert;
+import ontology.learning.sampler.RandomSubsumptionSampler;
+import ontology.learning.sampler.SubsumptionSamplingOracle;
+
 import org.apache.logging.log4j.Logger;
 import org.apache.logging.log4j.LogManager;
 

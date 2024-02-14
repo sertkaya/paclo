@@ -23,6 +23,8 @@ import org.semanticweb.owlapi.reasoner.OWLReasoner;
 import org.semanticweb.owlapi.reasoner.OWLReasonerFactory;
 
 import javafx.util.Pair;
+import ontology.learning.expert.ExpertOracle;
+import ontology.learning.sampler.SubsumptionSamplingOracle;
 
 
 // with subsumption queries

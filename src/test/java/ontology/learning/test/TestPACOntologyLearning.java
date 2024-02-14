@@ -24,11 +24,11 @@ import org.semanticweb.owlapi.model.OWLOntologyCreationException;
 import org.semanticweb.owlapi.model.OWLOntologyManager;
 import org.semanticweb.owlapi.util.mansyntax.ManchesterOWLSyntaxParser;
 
-import ontology.learning.ExpertOracle;
 import ontology.learning.PACOntologyLearning;
-import ontology.learning.RandomSampler;
-import ontology.learning.ReasonerExpert;
-import ontology.learning.SamplingOracle;
+import ontology.learning.expert.ExpertOracle;
+import ontology.learning.expert.ReasonerExpert;
+import ontology.learning.sampler.RandomSampler;
+import ontology.learning.sampler.SamplingOracle;
 
 public class TestPACOntologyLearning {
 
