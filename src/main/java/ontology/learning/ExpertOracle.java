@@ -1,4 +1,4 @@
-package ontology.completion;
+package ontology.learning;
 
 import org.semanticweb.owlapi.model.OWLOntology;
 import org.semanticweb.owlapi.model.OWLSubClassOfAxiom;

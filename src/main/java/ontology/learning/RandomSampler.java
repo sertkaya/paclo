@@ -1,4 +1,4 @@
-package ontology.completion;
+package ontology.learning;
 
 import java.util.Collections;
 import java.util.HashSet;

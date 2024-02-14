@@ -1,4 +1,4 @@
-package ontology.completion;
+package ontology.learning;
 
 import java.util.Set;
 import java.util.ArrayList;
@@ -24,7 +24,7 @@ import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
 
-public class PACOntologyCompletion {
+public class PACOntologyLearning {
 	
 	private OWLOntology ontology;
 	private OWLOntology auxiliaryOntology;
@@ -51,7 +51,7 @@ public class PACOntologyCompletion {
 	 * @param expert: The domain expert 
 	 * @param sampler
 	 */
-	public PACOntologyCompletion(IRI ontologyIRI, Set<OWLClassExpression> baseSet, ExpertOracle expert, SamplingOracle sampler) {
+	public PACOntologyLearning(IRI ontologyIRI, Set<OWLClassExpression> baseSet, ExpertOracle expert, SamplingOracle sampler) {
 		om = OWLManager.createOWLOntologyManager();
 		df = om.getOWLDataFactory();
 		rf = new ReasonerFactory();

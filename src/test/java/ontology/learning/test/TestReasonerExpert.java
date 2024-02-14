@@ -1,4 +1,4 @@
-package ontology.completion.test;
+package ontology.learning.test;
 
 import java.io.File;
 import java.util.HashSet;
@@ -13,13 +13,13 @@ import org.semanticweb.owlapi.model.OWLOntologyManager;
 import org.semanticweb.owlapi.model.OWLSubClassOfAxiom;
 import org.semanticweb.owlapi.util.IRIComparator;
 
-import ontology.completion.ExpertOracle;
-import ontology.completion.Implication;
-import ontology.completion.ImplicationList;
-import ontology.completion.PACOntologyCompletion;
-import ontology.completion.RandomSampler;
-import ontology.completion.ReasonerExpert;
-import ontology.completion.SamplingOracle;
+import ontology.learning.ExpertOracle;
+import ontology.learning.Implication;
+import ontology.learning.ImplicationList;
+import ontology.learning.PACOntologyLearning;
+import ontology.learning.RandomSampler;
+import ontology.learning.ReasonerExpert;
+import ontology.learning.SamplingOracle;
 
 public class TestReasonerExpert {
 

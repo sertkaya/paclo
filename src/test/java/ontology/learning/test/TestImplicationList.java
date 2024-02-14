@@ -1,4 +1,4 @@
-package ontology.completion.test;
+package ontology.learning.test;
 
 import java.util.HashSet;
 import java.util.Set;
@@ -9,8 +9,8 @@ import org.semanticweb.owlapi.model.OWLDataFactory;
 import org.semanticweb.owlapi.model.OWLObjectProperty;
 import org.semanticweb.owlapi.model.OWLOntologyManager;
 
-import ontology.completion.Implication;
-import ontology.completion.ImplicationList;
+import ontology.learning.Implication;
+import ontology.learning.ImplicationList;
 
 public class TestImplicationList {
 

@@ -1,4 +1,4 @@
-package ontology.completion;
+package ontology.learning;
 
 import java.io.BufferedReader;
 import java.io.File;
@@ -30,7 +30,7 @@ import org.semanticweb.owlapi.util.mansyntax.ManchesterOWLSyntaxParser;
 import org.apache.logging.log4j.Logger;
 import org.apache.logging.log4j.LogManager;
 
-public class PACco {
+public class PAClo {
 	protected static final Logger logger = LogManager.getLogger();
 	
 	public static Set<OWLClassExpression> readBaseSet(File f, OWLOntology o) {
@@ -151,7 +151,7 @@ public class PACco {
 		IRI resultOntologyIRI = IRI.create(resultOntology);
 
 		// PACOntologyCompletion pacCompletion = new PACOntologyCompletion(initialOntologyIRI, baseSet, expert, sampler);
-		PACOntologyCompletionSub pacCompletion = new PACOntologyCompletionSub(initialOntologyIRI, baseSet, expert, sampler);
+		PACOntologyLearningSub pacCompletion = new PACOntologyLearningSub(initialOntologyIRI, baseSet, expert, sampler);
 		pacCompletion.upperApproximation(epsilon, delta, resultOntologyIRI);
 
 	}

@@ -1,1 +1,1 @@
-pacco - PAC Completion of Ontologies
+paclo - Probably Approximately Correct Ontology Learning

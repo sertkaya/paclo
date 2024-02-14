@@ -1,4 +1,4 @@
-package ontology.completion;
+package ontology.learning;
 
 import java.util.Set;
 import java.util.ArrayList;
@@ -26,7 +26,7 @@ import javafx.util.Pair;
 
 
 // with subsumption queries
-public class PACOntologyCompletionSub {
+public class PACOntologyLearningSub {
 	
 	private OWLOntology ontology;
 	private OWLOntology auxiliaryOntology;
@@ -53,7 +53,7 @@ public class PACOntologyCompletionSub {
 	 * @param expert: The domain expert 
 	 * @param sampler
 	 */
-	public PACOntologyCompletionSub(IRI ontologyIRI,
+	public PACOntologyLearningSub(IRI ontologyIRI,
                                     Set<OWLClassExpression> baseSet, 
                                     ExpertOracle expert, 
                                     SubsumptionSamplingOracle sampler) {

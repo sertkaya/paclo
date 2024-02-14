@@ -1,4 +1,4 @@
-package ontology.completion;
+package ontology.learning;
 
 import java.util.Set;
 import java.util.ArrayList;

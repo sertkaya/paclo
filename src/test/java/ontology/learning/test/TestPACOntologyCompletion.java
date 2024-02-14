@@ -1,4 +1,4 @@
-package ontology.completion.test;
+package ontology.learning.test;
 
 import java.io.File;
 import java.util.HashMap;
@@ -24,11 +24,11 @@ import org.semanticweb.owlapi.model.OWLOntologyCreationException;
 import org.semanticweb.owlapi.model.OWLOntologyManager;
 import org.semanticweb.owlapi.util.mansyntax.ManchesterOWLSyntaxParser;
 
-import ontology.completion.ExpertOracle;
-import ontology.completion.PACOntologyCompletion;
-import ontology.completion.RandomSampler;
-import ontology.completion.ReasonerExpert;
-import ontology.completion.SamplingOracle;
+import ontology.learning.ExpertOracle;
+import ontology.learning.PACOntologyLearning;
+import ontology.learning.RandomSampler;
+import ontology.learning.ReasonerExpert;
+import ontology.learning.SamplingOracle;
 
 public class TestPACOntologyCompletion {
 
@@ -75,7 +75,7 @@ public class TestPACOntologyCompletion {
 		File myOntology = new File("/home/bs/research/dev/pacco/src/test/resources/myOntology.owx");
 		IRI myOntologyIRI = IRI.create(myOntology);
 
-		PACOntologyCompletion pacCompletion = new PACOntologyCompletion(myOntologyIRI, baseSet, expert, sampler);
+		PACOntologyLearning pacCompletion = new PACOntologyLearning(myOntologyIRI, baseSet, expert, sampler);
 		// pacCompletion.upperApproximation(0.8, 0.5);
 		// System.out.println(pacCompletion.callsToSamplingOracle(0.5, 0.5, 3));
 
