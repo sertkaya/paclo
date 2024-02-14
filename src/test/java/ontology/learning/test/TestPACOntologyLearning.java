@@ -30,7 +30,7 @@ import ontology.learning.RandomSampler;
 import ontology.learning.ReasonerExpert;
 import ontology.learning.SamplingOracle;
 
-public class TestPACOntologyCompletion {
+public class TestPACOntologyLearning {
 
 	static OWLOntologyManager om = OWLManager.createOWLOntologyManager();
 	static OWLDataFactory df = om.getOWLDataFactory();
