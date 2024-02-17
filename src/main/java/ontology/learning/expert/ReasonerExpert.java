@@ -1,8 +1,5 @@
 package ontology.learning.expert;
 
-import java.util.Set;
-import org.semanticweb.owlapi.model.OWLClassExpression;
-import org.semanticweb.owlapi.model.OWLDataFactory;
 import org.semanticweb.owlapi.model.OWLOntologyManager;
 import org.semanticweb.owlapi.model.OWLSubClassOfAxiom;
 import org.semanticweb.owlapi.model.OWLOntology;
@@ -12,6 +9,9 @@ import org.semanticweb.owlapi.model.IRI;
 import org.semanticweb.owlapi.reasoner.InferenceType;
 import org.semanticweb.owlapi.reasoner.OWLReasoner;
 import org.semanticweb.owlapi.reasoner.OWLReasonerFactory;
+
+import ontology.learning.Implication;
+
 import org.semanticweb.owlapi.model.OWLOntologyCreationException;
 
 /**
@@ -23,7 +23,6 @@ public class ReasonerExpert implements ExpertOracle {
 	
 	public ReasonerExpert(IRI iri) {
 		OWLOntologyManager om = OWLManager.createOWLOntologyManager();
-		OWLDataFactory df = om.getOWLDataFactory();
 		try {
 			this.ontology = om.loadOntology(iri);
 		}
