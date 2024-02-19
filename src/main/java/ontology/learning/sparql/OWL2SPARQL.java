@@ -16,7 +16,8 @@ public class OWL2SPARQL {
         String s = "?" + String.valueOf(subject);
         switch (c.getClassExpressionType()) {
             case OWL_CLASS:
-                return(s + " wdt:P31 " + c + ".\n");
+                // return(s + " wdt:P31 " + c + ".\n");
+                return(s + " <http://www.wikidata.org/entity/P31> " + c + ".\n");
             case OBJECT_SOME_VALUES_FROM:
                 String p = (((OWLObjectSomeValuesFrom) c).getProperty()).toString();
                 int object = 10 * subject + successorCount;

@@ -55,16 +55,16 @@ public class TestReasonerExpert {
 		String baseSetFileName = "/home/bs/research/dev/pacco/src/test/resources/baseSet";
 		File baseSetFile = new File(baseSetFileName);
 		baseSet = Utils.readBaseSet(baseSetFile, expert.getExpertOntology());
-		for (OWLClassExpression c : baseSet) {
-			System.out.println("query:" + OWL2SPARQL.buildQuery(c));
-		}
+		// for (OWLClassExpression c : baseSet) {
+		// 	System.out.println("query:" + OWL2SPARQL.buildQuery(c));
+		// }
 
-		// OWLClassExpression lhs = df.getOWLObjectIntersectionOf(clsA);
-		// OWLClassExpression rhs = df.getOWLObjectIntersectionOf(clsB);
-		// OWLSubClassOfAxiom ax = df.getOWLSubClassOfAxiom(lhs, rhs);
+		OWLClassExpression lhs = df.getOWLObjectIntersectionOf(clsA);
+		OWLClassExpression rhs = df.getOWLObjectIntersectionOf(clsB);
+		OWLSubClassOfAxiom ax = df.getOWLSubClassOfAxiom(lhs, rhs);
 		// OWLSubClassOfAxiom ax = df.getOWLSubClassOfAxiom(clsA, clsB);
 		
-		// System.out.println(expert.holds(ax));
+		System.out.println(expert.holds(ax));
 		// expert.getReasoner().getSubClasses(clsB, false).forEach(System.out::println);
 
 	}

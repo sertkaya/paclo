@@ -53,24 +53,25 @@ public class TripleStoreExpert implements ExpertOracle {
 		ontology.add(df.getOWLDeclarationAxiom(df.getOWLClass("http://www.wikidata.org/entity/Q6581072")));
 		ontology.add(df.getOWLDeclarationAxiom(df.getOWLObjectProperty("http://www.wikidata.org/entity/P31")));
 
-		OWLSubClassOfAxiom ax = om.getOWLDataFactory().getOWLSubClassOfAxiom(q6581072, q5);
-		ontology.addAxiom(ax);
+		// OWLSubClassOfAxiom ax = om.getOWLDataFactory().getOWLSubClassOfAxiom(q6581072, q5);
+		// ontology.addAxiom(ax);
 		// ontology.getSignature().add(om.getOWLDataFactory().getOWLObjectProperty("<http://www.wikidata.org/entity/P31>"));
 
-		OWLReasonerFactory rf = new ReasonerFactory();
-		OWLReasoner reasoner = rf.createReasoner(ontology);
-		reasoner.precomputeInferences(InferenceType.CLASS_HIERARCHY);
+		// OWLReasonerFactory rf = new ReasonerFactory();
+		// OWLReasoner reasoner = rf.createReasoner(ontology);
+		// reasoner.precomputeInferences(InferenceType.CLASS_HIERARCHY);
 
     }
 
 	public boolean holds(OWLSubClassOfAxiom ax) {
 		// TODO Auto-generated method stub
 		String queryStrLhs = OWL2SPARQL.buildQuery(ax.getSubClass());
+		System.out.println("querStrLhs:" + queryStrLhs);
 		Query queryLhs = QueryFactory.create(queryStrLhs);
 		Txn.executeWrite(conn, () ->{
 			conn.queryResultSet(queryLhs, ResultSetFormatter::out);
 		});
-		conn.queryResultSet(queryLhs, ResultSetFormatter::out);
+		// conn.queryResultSet(queryLhs, ResultSetFormatter::out);
 		return false;
 	}
 

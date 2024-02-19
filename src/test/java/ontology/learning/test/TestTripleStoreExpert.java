@@ -30,5 +30,11 @@ public class TestTripleStoreExpert {
 			System.out.println("query:" + OWL2SPARQL.buildQuery(c));
 		}
 
+		OWLClassExpression q5 = df.getOWLClass("http://www.wikidata.org/entity/Q5");
+		OWLClassExpression q6581072 = df.getOWLClass("http://www.wikidata.org/entity#Q6581072");
+		OWLObjectProperty p31 = df.getOWLObjectProperty("http://www.wikidata.org/entity#P31");
+
+		OWLSubClassOfAxiom ax = om.getOWLDataFactory().getOWLSubClassOfAxiom(q5, q6581072);
+		expert.holds(ax);
 	}
 }
