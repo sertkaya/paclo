@@ -1,86 +1,81 @@
 package ontology.learning.expert;
 
+import ontology.learning.sparql.OWL2SPARQL;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
+import org.semanticweb.HermiT.ReasonerFactory;
+import org.semanticweb.owlapi.apibinding.OWLManager;
 import org.semanticweb.owlapi.model.*;
+
+import org.apache.jena.query.*;
+import org.apache.jena.rdfconnection.RDFConnection;
+import org.apache.jena.system.Txn;
+import org.semanticweb.owlapi.reasoner.InferenceType;
+import org.semanticweb.owlapi.reasoner.OWLReasoner;
+import org.semanticweb.owlapi.reasoner.OWLReasonerFactory;
 
 public class TripleStoreExpert implements ExpertOracle {
 	protected static final Logger logger = LogManager.getLogger();
 
+	private OWLOntology ontology;
+
+	private RDFConnection conn;
+
 	public TripleStoreExpert(String fileName) {
+		Dataset dataset = DatasetFactory.createTxnMem();
+		conn = RDFConnection.connect(dataset);
 
-	}
-	
-	public String buildWhereClause(int subject, OWLClassExpression c, int successorCount) {
+		Txn.executeWrite(conn, () ->{
+			System.out.println("Load a file");
+			conn.load(fileName);
+			// conn.load("http://example/g0", "data.ttl");
+			System.out.println("In write transaction");
+			// conn.queryResultSet(query, ResultSetFormatter::out);
+		});
+		// And again - implicit READ transaction.
+		System.out.println("After write transaction");
+		// conn.queryResultSet(query, ResultSetFormatter::out);
 
-		String s = "?" + String.valueOf(subject);
-		switch (c.getClassExpressionType()) {
-		case OWL_CLASS:
-			return(s + " wdt:P31 " + c + ".\n");
-		case OBJECT_SOME_VALUES_FROM:
-			String p = (((OWLObjectSomeValuesFrom) c).getProperty()).toString();
-			int object = 10 * subject + successorCount;
-			String o = "?" + String.valueOf(object);
-
-			// OWLClassExpression filler = ((OWLObjectSomeValuesFrom) c).getFiller();
-			// if (filler.getClassExpressionType().equals(ClassExpressionType.OBJECT_SOME_VALUES_FROM))
-			successorCount = 0;
-			return(s + " " + p + " " + o + ". \n" +  buildWhereClause(object, ((OWLObjectSomeValuesFrom) c).getFiller(), successorCount));
-		case DATA_ALL_VALUES_FROM:
-			break;
-		case DATA_EXACT_CARDINALITY:
-			break;
-		case DATA_HAS_VALUE:
-			break;
-		case DATA_MAX_CARDINALITY:
-			break;
-		case DATA_MIN_CARDINALITY:
-			break;
-		case DATA_SOME_VALUES_FROM:
-			break;
-		case OBJECT_ALL_VALUES_FROM:
-			break;
-		case OBJECT_COMPLEMENT_OF:
-			break;
-		case OBJECT_EXACT_CARDINALITY:
-			break;
-		case OBJECT_HAS_SELF:
-			break;
-		case OBJECT_HAS_VALUE:
-			break;
-		case OBJECT_INTERSECTION_OF:
-			String clause = "";
-			for (OWLClassExpression conjunct : c.asConjunctSet()) {
-				clause += buildWhereClause(subject, conjunct, successorCount);
-				if (conjunct.getClassExpressionType().equals(ClassExpressionType.OBJECT_SOME_VALUES_FROM))
-					++successorCount;
-			}
-			return(clause);
-		case OBJECT_MAX_CARDINALITY:
-			break;
-		case OBJECT_MIN_CARDINALITY:
-			break;
-		case OBJECT_ONE_OF:
-			break;
-		case OBJECT_UNION_OF:
-			break;
-		default:
-			break;
+		OWLOntologyManager om = OWLManager.createOWLOntologyManager();
+		OWLDataFactory df = om.getOWLDataFactory();
+		try {
+			this.ontology = om.createOntology();
+		}
+		catch (OWLOntologyCreationException e) {
+			logger.error("Error creating ontology");
+			System.exit(-1);
 		}
 
-		return("xxx");
-	}
-	
-	
+		OWLClassExpression q5 = df.getOWLClass("http://www.wikidata.org/entity/Q5");
+		OWLClassExpression q6581072 = df.getOWLClass("http://www.wikidata.org/entity/Q6581072");
+		ontology.add(df.getOWLDeclarationAxiom(df.getOWLClass("http://www.wikidata.org/entity/Q5")));
+		ontology.add(df.getOWLDeclarationAxiom(df.getOWLClass("http://www.wikidata.org/entity/Q6581072")));
+		ontology.add(df.getOWLDeclarationAxiom(df.getOWLObjectProperty("http://www.wikidata.org/entity/P31")));
+
+		OWLSubClassOfAxiom ax = om.getOWLDataFactory().getOWLSubClassOfAxiom(q6581072, q5);
+		ontology.addAxiom(ax);
+		// ontology.getSignature().add(om.getOWLDataFactory().getOWLObjectProperty("<http://www.wikidata.org/entity/P31>"));
+
+		OWLReasonerFactory rf = new ReasonerFactory();
+		OWLReasoner reasoner = rf.createReasoner(ontology);
+		reasoner.precomputeInferences(InferenceType.CLASS_HIERARCHY);
+
+    }
+
 	public boolean holds(OWLSubClassOfAxiom ax) {
 		// TODO Auto-generated method stub
+		String queryStrLhs = OWL2SPARQL.buildQuery(ax.getSubClass());
+		Query queryLhs = QueryFactory.create(queryStrLhs);
+		Txn.executeWrite(conn, () ->{
+			conn.queryResultSet(queryLhs, ResultSetFormatter::out);
+		});
+		conn.queryResultSet(queryLhs, ResultSetFormatter::out);
 		return false;
 	}
 
 	public OWLOntology getExpertOntology() {
-		// TODO Auto-generated method stub
-		return null;
+		return(this.ontology);
 	}
 
 }

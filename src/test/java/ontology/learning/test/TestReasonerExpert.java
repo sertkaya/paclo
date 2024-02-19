@@ -4,6 +4,9 @@ import java.io.File;
 import java.util.HashSet;
 import java.util.Set;
 
+import ontology.learning.expert.TripleStoreExpert;
+import ontology.learning.sparql.OWL2SPARQL;
+import ontology.learning.utils.Utils;
 import org.semanticweb.owlapi.apibinding.OWLManager;
 import org.semanticweb.owlapi.model.IRI;
 import org.semanticweb.owlapi.model.OWLClassExpression;
@@ -39,24 +42,30 @@ public class TestReasonerExpert {
 		OWLClassExpression existsRB = df.getOWLObjectSomeValuesFrom(propR, clsB);
 		
 		Set<OWLClassExpression> baseSet = new HashSet<OWLClassExpression>();
-		baseSet.add(clsA);
-		baseSet.add(clsB);
-		baseSet.add(clsC);
+		// baseSet.add(clsA);
+		// baseSet.add(clsB);
+		// baseSet.add(clsC);
 		// baseSet.add(existsRA);
 		// baseSet.add(existsRB);
 	
 		File expertOntology = new File("/home/bs/research/dev/pacco/src/test/resources/expertOntology.owx");
 		IRI expertOntologyIRI = IRI.create(expertOntology);
 		ReasonerExpert expert = new ReasonerExpert(expertOntologyIRI);
-		
+
+		String baseSetFileName = "/home/bs/research/dev/pacco/src/test/resources/baseSet";
+		File baseSetFile = new File(baseSetFileName);
+		baseSet = Utils.readBaseSet(baseSetFile, expert.getExpertOntology());
+		for (OWLClassExpression c : baseSet) {
+			System.out.println("query:" + OWL2SPARQL.buildQuery(c));
+		}
+
 		// OWLClassExpression lhs = df.getOWLObjectIntersectionOf(clsA);
 		// OWLClassExpression rhs = df.getOWLObjectIntersectionOf(clsB);
 		// OWLSubClassOfAxiom ax = df.getOWLSubClassOfAxiom(lhs, rhs);
-		OWLSubClassOfAxiom ax = df.getOWLSubClassOfAxiom(clsA, clsB);
+		// OWLSubClassOfAxiom ax = df.getOWLSubClassOfAxiom(clsA, clsB);
 		
-		System.out.println(expert.holds(ax));
-		
-		expert.getReasoner().getSubClasses(clsB, false).forEach(System.out::println);
-			
+		// System.out.println(expert.holds(ax));
+		// expert.getReasoner().getSubClasses(clsB, false).forEach(System.out::println);
+
 	}
 }
