@@ -14,6 +14,7 @@ import org.apache.jena.system.Txn;
 import org.semanticweb.owlapi.reasoner.InferenceType;
 import org.semanticweb.owlapi.reasoner.OWLReasoner;
 import org.semanticweb.owlapi.reasoner.OWLReasonerFactory;
+import org.semanticweb.owlapi.util.DefaultPrefixManager;
 
 public class TripleStoreExpert implements ExpertOracle {
 	protected static final Logger logger = LogManager.getLogger();
@@ -22,7 +23,12 @@ public class TripleStoreExpert implements ExpertOracle {
 
 	private RDFConnection conn;
 
+	private PrefixManager pm;
+
 	public TripleStoreExpert(String fileName) {
+		pm = new DefaultPrefixManager();
+		pm.setPrefix("wdt", "http://www.wikidata.org/entity/");
+
 		Dataset dataset = DatasetFactory.createTxnMem();
 		conn = RDFConnection.connect(dataset);
 
@@ -65,7 +71,7 @@ public class TripleStoreExpert implements ExpertOracle {
 
 	public boolean holds(OWLSubClassOfAxiom ax) {
 		// TODO Auto-generated method stub
-		String queryStrLhs = OWL2SPARQL.buildQuery(ax.getSubClass());
+		String queryStrLhs = OWL2SPARQL.buildQuery(ax);
 		System.out.println("querStrLhs:" + queryStrLhs);
 		Query queryLhs = QueryFactory.create(queryStrLhs);
 		Txn.executeWrite(conn, () ->{
@@ -79,4 +85,7 @@ public class TripleStoreExpert implements ExpertOracle {
 		return(this.ontology);
 	}
 
+	public PrefixManager getPrefixManager() {
+		return pm;
+	}
 }

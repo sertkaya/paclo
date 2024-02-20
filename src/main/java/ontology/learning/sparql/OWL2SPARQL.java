@@ -1,11 +1,24 @@
 package ontology.learning.sparql;
 
-import org.semanticweb.owlapi.model.ClassExpressionType;
-import org.semanticweb.owlapi.model.OWLClassExpression;
-import org.semanticweb.owlapi.model.OWLObjectSomeValuesFrom;
+import org.semanticweb.owlapi.model.*;
+import org.semanticweb.owlapi.util.DefaultPrefixManager;
+import org.semanticweb.owlapi.util.StringComparator;
+
+import javax.annotation.Nullable;
+import java.util.HashMap;
+import java.util.Map;
+import java.util.stream.Stream;
 
 public class OWL2SPARQL {
 
+    public static String buildQuery(OWLSubClassOfAxiom ax) {
+        String queryStr = "PREFIX wdt: <http://www.wikidata.org/entity/>\n\nSELECT DISTINCT ?1 WHERE {\n" +
+                buildWhereClause(1, ax.getSubClass(), 0) +
+                " FILTER NOT EXISTS {\n" +
+                buildWhereClause(1, ax.getSuperClass(), 0) +
+                "}\n}\n";
+        return(queryStr);
+    }
     public static String buildQuery(OWLClassExpression c) {
         String queryStr = "SELECT DISTINCT ?1 WHERE {\n" + buildWhereClause(1, c, 0) + "}";
         return(queryStr);
@@ -17,7 +30,8 @@ public class OWL2SPARQL {
         switch (c.getClassExpressionType()) {
             case OWL_CLASS:
                 // return(s + " wdt:P31 " + c + ".\n");
-                return(s + " <http://www.wikidata.org/entity/P31> " + c + ".\n");
+                // return(s + " <http://www.wikidata.org/entity/P31> " + c + ".\n");
+                return(s + " wdt:P31 " + c + ".\n");
             case OBJECT_SOME_VALUES_FROM:
                 String p = (((OWLObjectSomeValuesFrom) c).getProperty()).toString();
                 int object = 10 * subject + successorCount;
