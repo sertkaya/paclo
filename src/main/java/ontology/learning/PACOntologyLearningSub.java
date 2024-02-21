@@ -104,7 +104,7 @@ public class PACOntologyLearningSub {
 
 		OWLClassExpression queryConjunction = premise.isEmpty() ? df.getOWLThing() : this.df.getOWLObjectIntersectionOf(premise);
 		OWLSubClassOfAxiom ax = df.getOWLSubClassOfAxiom(queryConjunction, conclusion);
-		
+
 		if (this.auxiliaryReasoner.isEntailed(ax)) {
 			return true;
 		}
@@ -112,7 +112,9 @@ public class PACOntologyLearningSub {
 		expertQueries++;
 		if (this.expert.holds(ax)) {
 			this.auxiliaryOntology.add(ax);
-			logger.debug("Added auxiliary axiom: " + prettyPrintAxiom(ax));
+			// logger.debug("Added auxiliary axiom: " + prettyPrintAxiom(ax));
+			// logger.debug("Added auxiliary axiom: " + ax);
+			System.out.println("Added auxiliary axiom: " + ax);
 			return true;
 		}
 
@@ -129,11 +131,13 @@ public class PACOntologyLearningSub {
             Set<OWLClassExpression> premise = query.getKey();
 			Set<OWLClassExpression> closure = imps.closure(premise);
             if (!closure.contains(query.getValue()) && isImplicationValid(premise, query.getValue())) {
-                logger.info("Samples at this iteration: " + samples);
+                // logger.info("Samples at this iteration: " + samples);
+				System.out.println("Samples at this iteration: " + samples);
                 return closure;
 			}
 		}
-		logger.info("Generated " + samples + " samples");		
+		// logger.info("Generated " + samples + " samples");
+		System.out.println("Generated " + samples + " samples");
 		return null;
 	}
 	
@@ -205,7 +209,8 @@ public class PACOntologyLearningSub {
 		boolean found = false;
 
 		while ((counterExample = getCounterExample(imps, callsToSamplingOracle(epsilon, delta, iteration))) != null) { 
-			logger.info("iteration:" + iteration);
+			// logger.info("iteration:" + iteration);
+			System.out.println("iteration:" + iteration);
 			found = false;
 			Implication imp = null;
 			for (int i = 0; i < imps.size(); i++) {
@@ -236,7 +241,8 @@ public class PACOntologyLearningSub {
 						// implicationAxiomHash.put(newImp, newAx);
 						// this.ontology.add(newAx);
 						this.auxiliaryOntology.add(newAx);
-						logger.debug("Added non-auxiliary axiom: " + prettyPrintAxiom(newAx));
+						// logger.debug("Added non-auxiliary axiom: " + prettyPrintAxiom(newAx));
+						System.out.println("Added non-auxiliary axiom: " + prettyPrintAxiom(newAx));
 
 						if (!counterExample.containsAll(newConclusion)) {
 						    break;
@@ -255,7 +261,8 @@ public class PACOntologyLearningSub {
 					// implicationAxiomHash.put(newImp, newAx);
 					// this.ontology.add(newAx);
 					this.auxiliaryOntology.add(newAx);
-					logger.debug("Added non-auxiliary axiom: " + prettyPrintAxiom(newAx));
+					// logger.debug("Added non-auxiliary axiom: " + prettyPrintAxiom(newAx));
+					System.out.println("Added non-auxiliary axiom: " + prettyPrintAxiom(newAx));
 				} else {
 					logger.debug("Could not add implication: " + newImp);
 
@@ -267,10 +274,12 @@ public class PACOntologyLearningSub {
 		for (int i = 0; i < imps.size(); ++i) {
 			OWLSubClassOfAxiom ax = imps.get(i).toGCI();
 			if (this.reasoner.isEntailed(ax)) {
-				logger.debug("Did not add axiom: " + prettyPrintAxiom(ax));
+				// logger.debug("Did not add axiom: " + prettyPrintAxiom(ax));
+				System.out.println("Did not add axiom: " + prettyPrintAxiom(ax));
 			} else {
 				this.ontology.add(ax);
-				logger.debug("Added axiom: " + prettyPrintAxiom(ax));
+				// logger.debug("Added axiom: " + prettyPrintAxiom(ax));
+				System.out.println("Added axiom: " + prettyPrintAxiom(ax));
 			}
 		}
 

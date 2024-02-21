@@ -17,7 +17,13 @@ public class Implication {
 	}
 
 	public OWLSubClassOfAxiom toGCI() {
-		OWLClassExpression premiseExpr = df.getOWLObjectIntersectionOf(premise);
+		OWLClassExpression premiseExpr;
+		// TODO: Check this!
+		// is the conjunction owl:Thing if premise is empty?
+		if (premise.isEmpty())
+			premiseExpr = df.getOWLThing();
+		else
+			premiseExpr = df.getOWLObjectIntersectionOf(premise);
 		OWLClassExpression conclusionExpr = df.getOWLObjectIntersectionOf(conclusion);
 		OWLSubClassOfAxiom gci = df.getOWLSubClassOfAxiom(premiseExpr, conclusionExpr);
 		return(gci);

@@ -11,8 +11,9 @@ import java.util.stream.Stream;
 
 public class OWL2SPARQL {
 
+    static String prefixStr = "PREFIX owl: <http://www.w3.org/2002/07/owl/>\nPREFIX wdt: <http://www.wikidata.org/entity/>\n\n";
     public static String buildQuery(OWLSubClassOfAxiom ax) {
-        String queryStr = "PREFIX wdt: <http://www.wikidata.org/entity/>\n\nSELECT DISTINCT ?1 WHERE {\n" +
+        String queryStr = prefixStr + "SELECT DISTINCT ?1 WHERE {\n" +
                 buildWhereClause(1, ax.getSubClass(), 0) +
                 " FILTER NOT EXISTS {\n" +
                 buildWhereClause(1, ax.getSuperClass(), 0) +
@@ -20,7 +21,7 @@ public class OWL2SPARQL {
         return(queryStr);
     }
     public static String buildQuery(OWLClassExpression c) {
-        String queryStr = "PREFIX wdt: <http://www.wikidata.org/entity/>\n\nSELECT DISTINCT ?1 WHERE {\n" +
+        String queryStr = prefixStr + "SELECT DISTINCT ?1 WHERE {\n" +
                 buildWhereClause(1, c, 0) + "}";
         return(queryStr);
     }
@@ -42,6 +43,12 @@ public class OWL2SPARQL {
             case OWL_CLASS:
                 // return(s + " wdt:P31 " + c + ".\n");
                 // return(s + " <http://www.wikidata.org/entity/P31> " + c + ".\n");
+                if (c.isOWLThing()) {
+                    return(s + " ?p " +  "?o.\n");
+                }
+                if (c.isOWLNothing()) {
+                    return(s + " wdt:NONEXISTING_PROPERTY " +  "wdt:NONEXISTING_OBJECT.\n");
+                }
                 return(s + " wdt:P31 " + c + ".\n");
             case OBJECT_SOME_VALUES_FROM:
                 String p = (((OWLObjectSomeValuesFrom) c).getProperty()).toString();

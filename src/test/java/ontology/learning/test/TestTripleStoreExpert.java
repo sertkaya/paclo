@@ -31,6 +31,9 @@ public class TestTripleStoreExpert {
 		OWLObjectProperty p40 = df.getOWLObjectProperty("wdt:P40", expert.getPrefixManager());
 
 		// human
+		OWLClassExpression thing = df.getOWLThing();
+
+		// human
 		OWLClassExpression q5 = df.getOWLClass("wdt:Q5", expert.getPrefixManager());
 		// female
 		OWLClassExpression q84048852 = df.getOWLClass("wdt:Q84048852", expert.getPrefixManager());
@@ -59,7 +62,17 @@ public class TestTripleStoreExpert {
 		// OWLSubClassOfAxiom ax = om.getOWLDataFactory().getOWLSubClassOfAxiom(p40q84048852, p40qQ84048850);
 
 		//  (child some male) --> (child some female)
-		OWLSubClassOfAxiom ax = om.getOWLDataFactory().getOWLSubClassOfAxiom(p40qQ84048850, p40q84048852);
+		// OWLSubClassOfAxiom ax = om.getOWLDataFactory().getOWLSubClassOfAxiom(p40qQ84048850, p40q84048852);
+
+		//  (child some male) --> owl:Thing
+		// OWLSubClassOfAxiom ax = om.getOWLDataFactory().getOWLSubClassOfAxiom(p40q84048852, thing);
+
+		//  (child some owl:Thing)
+		OWLClassExpression p40Thing = om.getOWLDataFactory().getOWLObjectSomeValuesFrom(p40, thing);
+		System.out.println(OWL2SPARQL.buildQuery(p40Thing));
+
+		//  (child some male) --> (child some owl:Thing)
+		OWLSubClassOfAxiom ax = om.getOWLDataFactory().getOWLSubClassOfAxiom(p40q84048852, p40Thing);
 
 		expert.holds(ax);
 	}

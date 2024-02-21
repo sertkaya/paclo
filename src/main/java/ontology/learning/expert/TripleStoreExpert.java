@@ -36,6 +36,7 @@ public class TripleStoreExpert implements ExpertOracle {
 	public TripleStoreExpert(String fileName) {
 		pm = new DefaultPrefixManager();
 		pm.setPrefix("wdt", "http://www.wikidata.org/entity/");
+		pm.setPrefix("owl", "http://www.w3.org/2002/07/owl/");
 
 		Dataset dataset = DatasetFactory.createTxnMem();
 		conn = RDFConnection.connect(dataset);
@@ -58,11 +59,13 @@ public class TripleStoreExpert implements ExpertOracle {
 			System.exit(-1);
 		}
 
-		OWLClassExpression q5 = df.getOWLClass("http://www.wikidata.org/entity/Q5");
-		OWLClassExpression q6581072 = df.getOWLClass("http://www.wikidata.org/entity/Q6581072");
+		// OWLClassExpression q5 = df.getOWLClass("http://www.wikidata.org/entity/Q5");
+		// OWLClassExpression q6581072 = df.getOWLClass("http://www.wikidata.org/entity/Q6581072");
 		ontology.add(df.getOWLDeclarationAxiom(df.getOWLClass("http://www.wikidata.org/entity/Q5")));
-		ontology.add(df.getOWLDeclarationAxiom(df.getOWLClass("http://www.wikidata.org/entity/Q6581072")));
+		ontology.add(df.getOWLDeclarationAxiom(df.getOWLClass("http://www.wikidata.org/entity/Q84048852")));
+		ontology.add(df.getOWLDeclarationAxiom(df.getOWLClass("http://www.wikidata.org/entity/Q84048850")));
 		ontology.add(df.getOWLDeclarationAxiom(df.getOWLObjectProperty("http://www.wikidata.org/entity/P31")));
+		ontology.add(df.getOWLDeclarationAxiom(df.getOWLObjectProperty("http://www.wikidata.org/entity/P40")));
 
 		// OWLSubClassOfAxiom ax = om.getOWLDataFactory().getOWLSubClassOfAxiom(q6581072, q5);
 		// ontology.addAxiom(ax);
