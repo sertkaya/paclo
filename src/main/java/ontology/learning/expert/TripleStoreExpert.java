@@ -1,6 +1,8 @@
 package ontology.learning.expert;
 
 import ontology.learning.sparql.OWL2SPARQL;
+import org.apache.jena.atlas.iterator.Iter;
+import org.apache.jena.graph.Node;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
@@ -9,12 +11,18 @@ import org.semanticweb.owlapi.apibinding.OWLManager;
 import org.semanticweb.owlapi.model.*;
 
 import org.apache.jena.query.*;
+import org.apache.jena.rdf.model.RDFNode;
 import org.apache.jena.rdfconnection.RDFConnection;
 import org.apache.jena.system.Txn;
 import org.semanticweb.owlapi.reasoner.InferenceType;
 import org.semanticweb.owlapi.reasoner.OWLReasoner;
 import org.semanticweb.owlapi.reasoner.OWLReasonerFactory;
 import org.semanticweb.owlapi.util.DefaultPrefixManager;
+
+import java.util.HashSet;
+import java.util.List;
+import java.util.Objects;
+import java.util.Set;
 
 public class TripleStoreExpert implements ExpertOracle {
 	protected static final Logger logger = LogManager.getLogger();
@@ -33,14 +41,11 @@ public class TripleStoreExpert implements ExpertOracle {
 		conn = RDFConnection.connect(dataset);
 
 		Txn.executeWrite(conn, () ->{
-			System.out.println("Load a file");
 			conn.load(fileName);
 			// conn.load("http://example/g0", "data.ttl");
-			System.out.println("In write transaction");
 			// conn.queryResultSet(query, ResultSetFormatter::out);
 		});
 		// And again - implicit READ transaction.
-		System.out.println("After write transaction");
 		// conn.queryResultSet(query, ResultSetFormatter::out);
 
 		OWLOntologyManager om = OWLManager.createOWLOntologyManager();
@@ -70,15 +75,37 @@ public class TripleStoreExpert implements ExpertOracle {
     }
 
 	public boolean holds(OWLSubClassOfAxiom ax) {
-		// TODO Auto-generated method stub
-		String queryStrLhs = OWL2SPARQL.buildQuery(ax);
-		System.out.println("querStrLhs:" + queryStrLhs);
-		Query queryLhs = QueryFactory.create(queryStrLhs);
+		String queryStrLhs = OWL2SPARQL.buildQuery(ax.getSubClass());
+		String queryStrRhs = OWL2SPARQL.buildQuery(ax.getSuperClass());
+		// Query queryLhs = QueryFactory.create(queryStrLhs);
+		/*
 		Txn.executeWrite(conn, () ->{
 			conn.queryResultSet(queryLhs, ResultSetFormatter::out);
 		});
+		 */
 		// conn.queryResultSet(queryLhs, ResultSetFormatter::out);
-		return false;
+
+		// TODO: Check for a more efficient way of doing this.
+		// Formulate a single SPARQL query for checking containment of lhs in rhs?
+		Set<Node> resultsLhs = new HashSet<>();
+		conn.queryResultSet(queryStrLhs, rs->{
+			List<QuerySolution> list = Iter.toList(rs);
+			list.stream()
+					.map(qs->qs.get("1"))
+					.filter(Objects::nonNull)
+					.map(RDFNode::asNode)
+					.forEach(n->resultsLhs.add((Node) n));
+		});
+		Set<Node> resultsRhs = new HashSet<>();
+		conn.queryResultSet(queryStrRhs, rs->{
+			List<QuerySolution> list = Iter.toList(rs);
+			list.stream()
+					.map(qs->qs.get("1"))
+					.filter(Objects::nonNull)
+					.map(RDFNode::asNode)
+					.forEach(n->resultsRhs.add((Node) n));
+		});
+		return(resultsRhs.containsAll(resultsLhs));
 	}
 
 	public OWLOntology getExpertOntology() {

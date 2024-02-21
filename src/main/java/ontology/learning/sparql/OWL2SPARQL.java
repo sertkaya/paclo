@@ -20,10 +20,21 @@ public class OWL2SPARQL {
         return(queryStr);
     }
     public static String buildQuery(OWLClassExpression c) {
-        String queryStr = "SELECT DISTINCT ?1 WHERE {\n" + buildWhereClause(1, c, 0) + "}";
+        String queryStr = "PREFIX wdt: <http://www.wikidata.org/entity/>\n\nSELECT DISTINCT ?1 WHERE {\n" +
+                buildWhereClause(1, c, 0) + "}";
         return(queryStr);
     }
 
+    /**
+     *
+     * @param subject the root variable (use 1)
+     * @param c the owl classexpression to convert
+     * @param successorCount number of successors in the current role depth (use 0)
+     * @return
+     * For subject = 1 and successorCount = 0,
+     * the variables at role depth 1 are ?10, ?11, ?12 ...
+     * at role depth 2 are ?20, ?21, ?22 ...
+     */
     private static String buildWhereClause(int subject, OWLClassExpression c, int successorCount) {
 
         String s = "?" + String.valueOf(subject);
