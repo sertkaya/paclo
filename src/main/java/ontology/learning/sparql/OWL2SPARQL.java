@@ -11,7 +11,8 @@ import java.util.stream.Stream;
 
 public class OWL2SPARQL {
 
-    static String prefixStr = "PREFIX owl: <http://www.w3.org/2002/07/owl/>\nPREFIX wdt: <http://www.wikidata.org/entity/>\n\n";
+    static String prefixStr = "PREFIX owl: <http://www.w3.org/2002/07/owl/>\nPREFIX wd: <http://www.wikidata.org/entity/>\n" +
+        "PREFIX wdt: <http://www.wikidata.org/prop/direct/>\n\n";
     public static String buildQuery(OWLSubClassOfAxiom ax) {
         String queryStr = prefixStr + "SELECT DISTINCT ?1 WHERE {\n" +
                 buildWhereClause(1, ax.getSubClass(), 0) +
@@ -47,7 +48,7 @@ public class OWL2SPARQL {
                     return(s + " ?p " +  "?o.\n");
                 }
                 if (c.isOWLNothing()) {
-                    return(s + " wdt:NONEXISTING_PROPERTY " +  "wdt:NONEXISTING_OBJECT.\n");
+                    return(s + " wdt:NONEXISTING_PROPERTY " +  "wd:NONEXISTING_OBJECT.\n");
                 }
                 return(s + " wdt:P31 " + c + ".\n");
             case OBJECT_SOME_VALUES_FROM:

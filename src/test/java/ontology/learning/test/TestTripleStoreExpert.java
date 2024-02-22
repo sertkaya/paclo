@@ -22,8 +22,9 @@ public class TestTripleStoreExpert {
 	public static void main(String[] args) {
 
 		String kg = "/home/bs/research/dev/paclo/src/test/resources/example-1.ttl";
+		String ontology = "/home/bs/research/dev/paclo/src/test/resources/emptyOntology.owx";
 		String baseSetFileName = "/home/bs/research/dev/paclo/src/test/resources/baseSet-example-1";
-		TripleStoreExpert expert = new TripleStoreExpert(kg);
+		TripleStoreExpert expert = new TripleStoreExpert(kg, IRI.create(ontology));
 		File baseSetFile = new File(baseSetFileName);
 		Set<OWLClassExpression> baseSet = Utils.readBaseSet(baseSetFile, expert.getExpertOntology());
 

@@ -242,7 +242,7 @@ public class PACOntologyLearningSub {
 						// this.ontology.add(newAx);
 						this.auxiliaryOntology.add(newAx);
 						// logger.debug("Added non-auxiliary axiom: " + prettyPrintAxiom(newAx));
-						System.out.println("Added non-auxiliary axiom: " + prettyPrintAxiom(newAx));
+						System.out.println("Added non-auxiliary axiom: " + newAx);
 
 						if (!counterExample.containsAll(newConclusion)) {
 						    break;
@@ -262,7 +262,7 @@ public class PACOntologyLearningSub {
 					// this.ontology.add(newAx);
 					this.auxiliaryOntology.add(newAx);
 					// logger.debug("Added non-auxiliary axiom: " + prettyPrintAxiom(newAx));
-					System.out.println("Added non-auxiliary axiom: " + prettyPrintAxiom(newAx));
+					System.out.println("Added non-auxiliary axiom: " + newAx);
 				} else {
 					logger.debug("Could not add implication: " + newImp);
 
@@ -275,11 +275,11 @@ public class PACOntologyLearningSub {
 			OWLSubClassOfAxiom ax = imps.get(i).toGCI();
 			if (this.reasoner.isEntailed(ax)) {
 				// logger.debug("Did not add axiom: " + prettyPrintAxiom(ax));
-				System.out.println("Did not add axiom: " + prettyPrintAxiom(ax));
+				System.out.println("Did not add axiom: " + ax);
 			} else {
 				this.ontology.add(ax);
 				// logger.debug("Added axiom: " + prettyPrintAxiom(ax));
-				System.out.println("Added axiom: " + prettyPrintAxiom(ax));
+				System.out.println("Added axiom: " + ax);
 			}
 		}
 

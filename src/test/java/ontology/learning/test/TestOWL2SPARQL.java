@@ -101,7 +101,8 @@ public class TestOWL2SPARQL {
 		// baseSet.add(existsRA_existsRAexistsRABCexistsRA_existsRAB);
 
 		String kg = "/home/bs/research/dev/pacco/src/test/resources/eu-g7-members.ttl";
-		TripleStoreExpert expert = new TripleStoreExpert(kg);
+		String ontology = "/home/bs/research/dev/pacco/src/test/resources/eu-members-declarations.owx";
+		TripleStoreExpert expert = new TripleStoreExpert(kg, IRI.create(ontology));
 		System.out.println(OWL2SPARQL.buildQuery(df.getOWLObjectIntersectionOf(baseSet)));
 
 	}

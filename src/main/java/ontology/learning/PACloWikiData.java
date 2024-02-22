@@ -31,16 +31,16 @@ public class PACloWikiData {
 		String knowledgeGraph = args[3];
 		File baseSetFile = new File(args[4]);
 		File resultOntology = new File(args[5]);
-		
-		ExpertOracle expert = new TripleStoreExpert(knowledgeGraph);
-		
-		Set<OWLClassExpression> baseSet = Utils.readBaseSet(baseSetFile, expert.getExpertOntology());
-		
-		// SamplingOracle sampler = new RandomSampler(baseSet);
-		SubsumptionSamplingOracle sampler = new RandomSubsumptionSampler(baseSet);
 
 		IRI initialOntologyIRI = IRI.create(initialOntology);
 		IRI resultOntologyIRI = IRI.create(resultOntology);
+
+		ExpertOracle expert = new TripleStoreExpert(knowledgeGraph, initialOntologyIRI);
+
+		Set<OWLClassExpression> baseSet = Utils.readBaseSet(baseSetFile, expert.getExpertOntology());
+
+		// SamplingOracle sampler = new RandomSampler(baseSet);
+		SubsumptionSamplingOracle sampler = new RandomSubsumptionSampler(baseSet);
 
 		// PACOntologyCompletion pacCompletion = new PACOntologyCompletion(initialOntologyIRI, baseSet, expert, sampler);
 		PACOntologyLearningSub pacCompletion = new PACOntologyLearningSub(initialOntologyIRI, baseSet, expert, sampler);

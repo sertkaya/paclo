@@ -32,17 +32,18 @@ public class TripleStoreExpert implements ExpertOracle {
 	private RDFConnection conn;
 
 	private PrefixManager pm;
-
-	public TripleStoreExpert(String fileName) {
+	private OWLReasoner reasoner;
+	public TripleStoreExpert(String KGfileName, IRI initialOntology) {
 		pm = new DefaultPrefixManager();
-		pm.setPrefix("wdt", "http://www.wikidata.org/entity/");
+		pm.setPrefix("wd", "http://www.wikidata.org/entity/");
+		pm.setPrefix("wdt", "http://www.wikidata.org/prop/direct/");
 		pm.setPrefix("owl", "http://www.w3.org/2002/07/owl/");
 
 		Dataset dataset = DatasetFactory.createTxnMem();
 		conn = RDFConnection.connect(dataset);
 
 		Txn.executeWrite(conn, () ->{
-			conn.load(fileName);
+			conn.load(KGfileName);
 			// conn.load("http://example/g0", "data.ttl");
 			// conn.queryResultSet(query, ResultSetFormatter::out);
 		});
@@ -52,15 +53,22 @@ public class TripleStoreExpert implements ExpertOracle {
 		OWLOntologyManager om = OWLManager.createOWLOntologyManager();
 		OWLDataFactory df = om.getOWLDataFactory();
 		try {
-			this.ontology = om.createOntology();
+			// this.ontology = om.createOntology();
+			this.ontology = om.loadOntology(initialOntology);
 		}
 		catch (OWLOntologyCreationException e) {
-			logger.error("Error creating ontology");
+			logger.error("Error loading ontology");
+			e.printStackTrace();
 			System.exit(-1);
 		}
 
+		OWLReasonerFactory rf = new ReasonerFactory();
+		this.reasoner = rf.createReasoner(ontology);
+		this.reasoner.precomputeInferences(InferenceType.CLASS_HIERARCHY);
+
 		// OWLClassExpression q5 = df.getOWLClass("http://www.wikidata.org/entity/Q5");
 		// OWLClassExpression q6581072 = df.getOWLClass("http://www.wikidata.org/entity/Q6581072");
+
 		ontology.add(df.getOWLDeclarationAxiom(df.getOWLClass("http://www.wikidata.org/entity/Q5")));
 		ontology.add(df.getOWLDeclarationAxiom(df.getOWLClass("http://www.wikidata.org/entity/Q84048852")));
 		ontology.add(df.getOWLDeclarationAxiom(df.getOWLClass("http://www.wikidata.org/entity/Q84048850")));
@@ -108,6 +116,8 @@ public class TripleStoreExpert implements ExpertOracle {
 					.map(RDFNode::asNode)
 					.forEach(n->resultsRhs.add((Node) n));
 		});
+		System.out.println(queryStrLhs);
+		System.out.println(queryStrRhs);
 		return(resultsRhs.containsAll(resultsLhs));
 	}
 
