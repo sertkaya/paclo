@@ -22,28 +22,28 @@ public class RandomSubsumptionSampler implements SubsumptionSamplingOracle {
 	 * Randomly select a subsumption query over baseSet
 	 */
 	public Pair<Set<OWLClassExpression>, OWLClassExpression> sample() {
-		
 		Random rd = new Random();
-		Set<OWLClassExpression> premise = new HashSet<OWLClassExpression>();
-		for (OWLClassExpression expr : baseSet) {
-			if (rd.nextBoolean())
-				premise.add(expr);
-		}
 
-		OWLClassExpression conclusion = nothing;
-		if (!premise.containsAll(baseSet)) {
-			Set<OWLClassExpression> remaining = new HashSet<OWLClassExpression>(baseSet);
-			int k = rd.nextInt(remaining.size());
-			int i = 0;
-			for (OWLClassExpression e : remaining) {
-				if (i == k) {
-					conclusion = e;
-					break;
+		Set<OWLClassExpression> premise = new HashSet<OWLClassExpression>();
+		do {
+			premise.clear();
+			for (OWLClassExpression expr : baseSet) {
+				if (rd.nextBoolean()) {
+					premise.add(expr);
 				}
-				i++;
 			}
+		} while (premise.containsAll(baseSet));
+
+		Set<OWLClassExpression> remaining = new HashSet<OWLClassExpression>(baseSet);
+		remaining.removeAll(premise);
+		int k = rd.nextInt(remaining.size());
+		int i = 0;
+		for (OWLClassExpression conclusion : remaining) {
+			if (i == k) {
+				return new Pair<Set<OWLClassExpression>, OWLClassExpression>(premise, conclusion);
+			}
+			i++;
 		}
-		
-		return new Pair<Set<OWLClassExpression>, OWLClassExpression>(premise, conclusion);
+		throw new IllegalStateException("Error in sampling.");
 	}
 }
