@@ -1,5 +1,7 @@
 package ontology.learning.expert;
 
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 import org.semanticweb.owlapi.model.OWLOntologyManager;
 import org.semanticweb.owlapi.model.OWLSubClassOfAxiom;
 import org.semanticweb.owlapi.model.OWLOntology;
@@ -17,7 +19,10 @@ import org.semanticweb.owlapi.model.OWLOntologyCreationException;
 /**
  * An expert implementation that answers questions w.r.t. an expert ontology.
  */
+
 public class ReasonerExpert implements ExpertOracle {
+	private Logger logger = LogManager.getLogger("ExpertOracle");
+
 	private OWLOntology ontology;
 	private OWLReasoner reasoner;
 	
@@ -27,7 +32,7 @@ public class ReasonerExpert implements ExpertOracle {
 			this.ontology = om.loadOntology(iri);
 		}
 		catch (OWLOntologyCreationException e) {
-			System.err.print("Error loading ontology");
+			logger.fatal("Error loading ontology");
 			System.exit(-1);
 		}
 		OWLReasonerFactory rf = new ReasonerFactory();

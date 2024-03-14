@@ -44,11 +44,7 @@ public class TripleStoreExpert implements ExpertOracle {
 
 		Txn.executeWrite(conn, () ->{
 			conn.load(KGfileName);
-			// conn.load("http://example/g0", "data.ttl");
-			// conn.queryResultSet(query, ResultSetFormatter::out);
 		});
-		// And again - implicit READ transaction.
-		// conn.queryResultSet(query, ResultSetFormatter::out);
 
 		OWLOntologyManager om = OWLManager.createOWLOntologyManager();
 		OWLDataFactory df = om.getOWLDataFactory();
@@ -57,7 +53,7 @@ public class TripleStoreExpert implements ExpertOracle {
 			this.ontology = om.loadOntology(initialOntology);
 		}
 		catch (OWLOntologyCreationException e) {
-			logger.error("Error loading ontology");
+			logger.fatal("Error loading ontology");
 			e.printStackTrace();
 			System.exit(-1);
 		}
@@ -69,11 +65,11 @@ public class TripleStoreExpert implements ExpertOracle {
 		// OWLClassExpression q5 = df.getOWLClass("http://www.wikidata.org/entity/Q5");
 		// OWLClassExpression q6581072 = df.getOWLClass("http://www.wikidata.org/entity/Q6581072");
 
-		ontology.add(df.getOWLDeclarationAxiom(df.getOWLClass("http://www.wikidata.org/entity/Q5")));
-		ontology.add(df.getOWLDeclarationAxiom(df.getOWLClass("http://www.wikidata.org/entity/Q84048852")));
-		ontology.add(df.getOWLDeclarationAxiom(df.getOWLClass("http://www.wikidata.org/entity/Q84048850")));
-		ontology.add(df.getOWLDeclarationAxiom(df.getOWLObjectProperty("http://www.wikidata.org/entity/P31")));
-		ontology.add(df.getOWLDeclarationAxiom(df.getOWLObjectProperty("http://www.wikidata.org/entity/P40")));
+		// ontology.add(df.getOWLDeclarationAxiom(df.getOWLClass("http://www.wikidata.org/entity/Q5")));
+		// ontology.add(df.getOWLDeclarationAxiom(df.getOWLClass("http://www.wikidata.org/entity/Q84048852")));
+		// ontology.add(df.getOWLDeclarationAxiom(df.getOWLClass("http://www.wikidata.org/entity/Q84048850")));
+		// ontology.add(df.getOWLDeclarationAxiom(df.getOWLObjectProperty("http://www.wikidata.org/entity/P31")));
+		// ontology.add(df.getOWLDeclarationAxiom(df.getOWLObjectProperty("http://www.wikidata.org/entity/P40")));
 
 		// OWLSubClassOfAxiom ax = om.getOWLDataFactory().getOWLSubClassOfAxiom(q6581072, q5);
 		// ontology.addAxiom(ax);
@@ -88,13 +84,6 @@ public class TripleStoreExpert implements ExpertOracle {
 	public boolean holds(OWLSubClassOfAxiom ax) {
 		String queryStrLhs = OWL2SPARQL.buildQuery(ax.getSubClass());
 		String queryStrRhs = OWL2SPARQL.buildQuery(ax.getSuperClass());
-		// Query queryLhs = QueryFactory.create(queryStrLhs);
-		/*
-		Txn.executeWrite(conn, () ->{
-			conn.queryResultSet(queryLhs, ResultSetFormatter::out);
-		});
-		 */
-		// conn.queryResultSet(queryLhs, ResultSetFormatter::out);
 
 		// TODO: Check for a more efficient way of doing this.
 		// Formulate a single SPARQL query for checking containment of lhs in rhs?
@@ -116,8 +105,6 @@ public class TripleStoreExpert implements ExpertOracle {
 					.map(RDFNode::asNode)
 					.forEach(n->resultsRhs.add((Node) n));
 		});
-		System.out.println(queryStrLhs);
-		System.out.println(queryStrRhs);
 		return(resultsRhs.containsAll(resultsLhs));
 	}
 

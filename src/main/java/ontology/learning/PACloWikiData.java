@@ -14,9 +14,7 @@ import java.io.File;
 import java.util.Set;
 
 public class PACloWikiData {
-	protected static final Logger logger = LogManager.getLogger();
-	
-
+	private static final Logger logger = LogManager.getLogger(PACloWikiData.class);
 
 	public static void main(String[] args) {
 
