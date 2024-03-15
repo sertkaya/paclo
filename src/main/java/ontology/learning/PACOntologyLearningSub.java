@@ -9,7 +9,10 @@ import org.apache.commons.logging.impl.Log4JLogger;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.semanticweb.HermiT.ReasonerFactory;
+import org.semanticweb.elk.owlapi.ElkReasonerFactory;
 import org.semanticweb.owlapi.apibinding.OWLManager;
+import org.semanticweb.owlapi.formats.OWLXMLDocumentFormat;
+import org.semanticweb.owlapi.formats.OWLXMLDocumentFormatFactory;
 import org.semanticweb.owlapi.model.IRI;
 import org.semanticweb.owlapi.model.OWLClassExpression;
 import org.semanticweb.owlapi.model.OWLDataFactory;
@@ -45,6 +48,7 @@ public class PACOntologyLearningSub {
 
 	private int expertQueries;
 	private int samplerQueries;
+	private int auxiliaryAxiomCount;
 
 	private Logger logger = LogManager.getLogger("PACOntologyLearningSub");
 
@@ -62,7 +66,8 @@ public class PACOntologyLearningSub {
                                     SubsumptionSamplingOracle sampler) {
 		om = OWLManager.createOWLOntologyManager();
 		df = om.getOWLDataFactory();
-		rf = new ReasonerFactory();
+		// rf = new ReasonerFactory();
+		rf = new ElkReasonerFactory();
 
 		this.baseSet = new HashSet<OWLClassExpression>(baseSet);
 		// TODO: read the baseSet! From file? 
@@ -91,6 +96,7 @@ public class PACOntologyLearningSub {
 		this.sampler = sampler;
 		
 		this.expertQueries = 0;
+		this.auxiliaryAxiomCount = 0;
 		
 		this.wrongImplicationHash = null;
 	}
@@ -113,6 +119,7 @@ public class PACOntologyLearningSub {
 		expertQueries++;
 		if (this.expert.holds(ax)) {
 			this.auxiliaryOntology.add(ax);
+			++this.auxiliaryAxiomCount;
 			// logger.debug("Added auxiliary axiom: " + prettyPrintAxiom(ax));
 			logger.debug("Added auxiliary axiom: " + ax);
 			return true;
@@ -208,6 +215,9 @@ public class PACOntologyLearningSub {
 
 		while ((counterExample = getCounterExample(imps, callsToSamplingOracle(epsilon, delta, iteration))) != null) { 
 			logger.info("iteration:" + iteration);
+			logger.info("auxiliary axioms:" + this.auxiliaryAxiomCount);
+			logger.info("expert queries:" + this.expertQueries);
+			logger.info("implications:" + imps.size());
 			found = false;
 			Implication imp = null;
 			for (int i = 0; i < imps.size(); i++) {
@@ -277,7 +287,8 @@ public class PACOntologyLearningSub {
         for (int i = 0; i < imps.size(); ++i) {
 			OWLSubClassOfAxiom ax = imps.get(i).toGCI();
 			if (this.reasoner.isEntailed(ax)) {
-				logger.debug("Did not add axiom: " + prettyPrintAxiom(ax));
+				// logger.debug("Did not add axiom: " + prettyPrintAxiom(ax));
+				logger.debug("Did not add axiom: " + ax);
 			} else {
 				resultOntology.add(ax);
 				// logger.debug("Added axiom: " + prettyPrintAxiom(ax));
@@ -286,11 +297,12 @@ public class PACOntologyLearningSub {
 		}
 
 	    logger.info("Total iterations: " + (iteration - 1));
-		logger.info("Expert queries: " + expertQueries);
-		logger.info("Samples generated: " + samplerQueries);
+		logger.info("Expert queries: " + this.expertQueries);
+		logger.info("Samples generated: " + this.samplerQueries);
+		logger.info("Auxiliary axioms added: " + this.auxiliaryAxiomCount);
 
 		try {
-			resultOntology.saveOntology(resultOntologyIRI);
+			resultOntology.saveOntology(new OWLXMLDocumentFormat(), resultOntologyIRI);
 		} catch (OWLOntologyStorageException e) {
 			logger.fatal("Error while saving result ontology");
 			e.printStackTrace();

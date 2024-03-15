@@ -85,6 +85,8 @@ public class TripleStoreExpert implements ExpertOracle {
 		String queryStrLhs = OWL2SPARQL.buildQuery(ax.getSubClass());
 		String queryStrRhs = OWL2SPARQL.buildQuery(ax.getSuperClass());
 
+		logger.debug("queryStrLhs:" + queryStrLhs);
+		logger.debug("queryStrRhs:" + queryStrRhs);
 		// TODO: Check for a more efficient way of doing this.
 		// Formulate a single SPARQL query for checking containment of lhs in rhs?
 		Set<Node> resultsLhs = new HashSet<>();
@@ -105,6 +107,7 @@ public class TripleStoreExpert implements ExpertOracle {
 					.map(RDFNode::asNode)
 					.forEach(n->resultsRhs.add((Node) n));
 		});
+		logger.debug("query executed");
 		return(resultsRhs.containsAll(resultsLhs));
 	}
 

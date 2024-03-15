@@ -50,7 +50,8 @@ public class OWL2SPARQL {
                 if (c.isOWLNothing()) {
                     return(s + " wdt:NONEXISTING_PROPERTY " +  "wd:NONEXISTING_OBJECT.\n");
                 }
-                return(s + " wdt:P31/wdt:P279* " + c + ".\n");
+                // return(s + " wdt:P31/wdt:P279* " + c + ".\n");
+                return(s + " wdt:P31 " + c + ".\n");
             case OBJECT_SOME_VALUES_FROM:
                 String p = (((OWLObjectSomeValuesFrom) c).getProperty()).toString();
                 int object = 10 * subject + successorCount;
