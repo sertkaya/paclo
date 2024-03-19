@@ -51,6 +51,10 @@ public class OWL2SPARQL {
                     return(s + " wdt:NONEXISTING_PROPERTY " +  "wd:NONEXISTING_OBJECT.\n");
                 }
                 // return(s + " wdt:P31/wdt:P279* " + c + ".\n");
+                // return(s + " <http://www.w3.org/1999/02/22-rdf-syntax-ns#>/<http://www.w3.org/2000/01/rdf-schema#>* " + c + ".\n");
+                // return(s + " wdt:P31 | wdt:P31/wdt:P279 | wdt:P31/wdt:P279+ " + c + ".\n");
+                // return(s + " wdt:P31 | wdt:P31/wdt:P279 " + c + ".\n");
+                // return(s + " wdt:P31 | wdt:P31/wdt:P279 " + c + ".\n");
                 return(s + " wdt:P31 " + c + ".\n");
             case OBJECT_SOME_VALUES_FROM:
                 String p = (((OWLObjectSomeValuesFrom) c).getProperty()).toString();

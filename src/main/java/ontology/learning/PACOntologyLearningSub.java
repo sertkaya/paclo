@@ -9,7 +9,7 @@ import org.apache.commons.logging.impl.Log4JLogger;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.semanticweb.HermiT.ReasonerFactory;
-import org.semanticweb.elk.owlapi.ElkReasonerFactory;
+// import org.semanticweb.elk.owlapi.ElkReasonerFactory;
 import org.semanticweb.owlapi.apibinding.OWLManager;
 import org.semanticweb.owlapi.formats.OWLXMLDocumentFormat;
 import org.semanticweb.owlapi.formats.OWLXMLDocumentFormatFactory;
@@ -66,8 +66,8 @@ public class PACOntologyLearningSub {
                                     SubsumptionSamplingOracle sampler) {
 		om = OWLManager.createOWLOntologyManager();
 		df = om.getOWLDataFactory();
-		// rf = new ReasonerFactory();
-		rf = new ElkReasonerFactory();
+		rf = new ReasonerFactory();
+		// rf = new ElkReasonerFactory();
 
 		this.baseSet = new HashSet<OWLClassExpression>(baseSet);
 		// TODO: read the baseSet! From file? 
@@ -165,7 +165,7 @@ public class PACOntologyLearningSub {
 		else
 			queryConjunction = this.df.getOWLObjectIntersectionOf(query);
 		
-		if (queryConjunction.isBottomEntity()) {
+		if (queryConjunction.isBottomEntity() || isImplicationValid(query, df.getOWLNothing())) {
 			Set<OWLClassExpression> s = new HashSet<OWLClassExpression>();
 			s.add(df.getOWLNothing());
 			return(s);
@@ -209,7 +209,8 @@ public class PACOntologyLearningSub {
 		for (OWLClassExpression c : this.baseSet) {
 			wrongImplicationHash.put(c, new ArrayList<Set<OWLClassExpression>>());
 		}
-		
+		wrongImplicationHash.put(df.getOWLNothing(), new ArrayList<Set<OWLClassExpression>>());
+
 		int iteration = 1;
 		boolean found = false;
 
@@ -259,7 +260,10 @@ public class PACOntologyLearningSub {
 			if (!found) {
 				Set<OWLClassExpression> newConclusion = new HashSet<OWLClassExpression>(complete(counterExample));
 				// construct the new implication
+				System.out.println("counterexample:" + counterExample);
+				System.out.println("newConclusion:" + newConclusion);
 				newConclusion.removeAll(counterExample);
+				System.out.println("newConclusion:" + newConclusion);
 				Implication newImp = new Implication(counterExample, newConclusion, df);
 				if (imps.add(newImp)) {
 					// add the GCI constructed from newImp to the ontology

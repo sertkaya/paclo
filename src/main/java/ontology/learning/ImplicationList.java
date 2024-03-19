@@ -19,13 +19,14 @@ public class ImplicationList extends ArrayList<Implication>{
 	
 	@Override
 	public boolean add(Implication imp) {
-		if (!baseSet.containsAll(imp.getPremise()) || !baseSet.containsAll(imp.getConclusion())) 
-			return(false);
+		// TODO: check here again
+		// if (!baseSet.containsAll(imp.getPremise()) || !baseSet.containsAll(imp.getConclusion()))
+		// 	return(false);
 		// First check if an implication with the same premise and conclusion already exists
-		for (Implication x : this) {
-			if (x.getPremise().equals(imp.getPremise()) && x.getConclusion().equals(imp.getConclusion()))
-				return(false);
-		}
+		// for (Implication x : this) {
+		// 	if (x.getPremise().equals(imp.getPremise()) && x.getConclusion().equals(imp.getConclusion()))
+		// 		return(false);
+		// }
 		return (super.add(imp));
 	}
 	
