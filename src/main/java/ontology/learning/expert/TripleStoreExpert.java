@@ -1,6 +1,7 @@
 package ontology.learning.expert;
 
 import ontology.learning.sparql.OWL2SPARQL;
+/*
 import org.apache.jena.atlas.iterator.Iter;
 import org.apache.jena.graph.Node;
 import org.apache.jena.rdf.model.Model;
@@ -9,6 +10,26 @@ import org.apache.jena.rdf.model.Resource;
 import org.apache.jena.update.UpdateExecution;
 import org.apache.jena.update.UpdateFactory;
 import org.apache.jena.update.UpdateRequest;
+import org.apache.jena.query.*;
+import org.apache.jena.rdf.model.RDFNode;
+import org.apache.jena.rdfconnection.RDFConnection;
+import org.apache.jena.system.Txn;
+*/
+import org.eclipse.rdf4j.common.exception.RDF4JException;
+import org.eclipse.rdf4j.model.Value;
+import org.eclipse.rdf4j.query.BindingSet;
+import org.eclipse.rdf4j.query.QueryEvaluationException;
+import org.eclipse.rdf4j.query.TupleQuery;
+import org.eclipse.rdf4j.query.TupleQueryResult;
+import org.eclipse.rdf4j.repository.Repository;
+import org.eclipse.rdf4j.repository.RepositoryConnection;
+import org.eclipse.rdf4j.repository.RepositoryException;
+import org.eclipse.rdf4j.repository.sail.SailRepository;
+import org.eclipse.rdf4j.rio.RDFFormat;
+import org.eclipse.rdf4j.rio.RDFParseException;
+import org.eclipse.rdf4j.sail.memory.MemoryStore;
+import org.eclipse.rdf4j.sail.inferencer.fc.SchemaCachingRDFSInferencer;
+
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
@@ -16,19 +37,12 @@ import org.semanticweb.HermiT.ReasonerFactory;
 import org.semanticweb.owlapi.apibinding.OWLManager;
 import org.semanticweb.owlapi.model.*;
 
-import org.apache.jena.query.*;
-import org.apache.jena.rdf.model.RDFNode;
-import org.apache.jena.rdfconnection.RDFConnection;
-import org.apache.jena.system.Txn;
 import org.semanticweb.owlapi.reasoner.InferenceType;
 import org.semanticweb.owlapi.reasoner.OWLReasoner;
 import org.semanticweb.owlapi.reasoner.OWLReasonerFactory;
 import org.semanticweb.owlapi.util.DefaultPrefixManager;
 
-import java.io.FileWriter;
-import java.io.IOException;
-import java.io.ObjectOutputStream;
-import java.io.Writer;
+import java.io.*;
 import java.util.*;
 
 public class TripleStoreExpert implements ExpertOracle {
@@ -36,29 +50,70 @@ public class TripleStoreExpert implements ExpertOracle {
 
 	private OWLOntology ontology;
 
+	/*
 	private RDFConnection conn;
+	private Dataset dataset;
+	*/
+
+	RepositoryConnection con;
 
 	private PrefixManager pm;
 	private OWLReasoner reasoner;
 
-	private Dataset dataset;
 	public TripleStoreExpert(String KGfileName, IRI initialOntology) {
 		pm = new DefaultPrefixManager();
 		pm.setPrefix("wd", "http://www.wikidata.org/entity/");
 		pm.setPrefix("wdt", "http://www.wikidata.org/prop/direct/");
 		pm.setPrefix("owl", "http://www.w3.org/2002/07/owl/");
 
+		/*
+		// Jena
 		this.dataset = DatasetFactory.createTxnMem();
 		conn = RDFConnection.connect(this.dataset);
 
 		Txn.executeWrite(conn, () ->{
 			conn.load(KGfileName);
 		});
+		 */
+		// RDF4J
+		// Repository repo = new SailRepository(new SchemaCachingRDFSInferencer(new MemoryStore()));
+		Repository repo = new SailRepository(new MemoryStore());
+		File file = new File(KGfileName);
+		try {
+			con = repo.getConnection();
+			// try {
+				// con.add(file, baseURI, RDFFormat.TURTLE);
+			// }
+			// TODO: Keep the connection open?
+			// finally {
+			// 	con.close();
+			// }
+		} catch (RepositoryException e) {
+			logger.fatal("Could not connect to the repository");
+			e.printStackTrace();
+			System.exit(-1);
+		}
 
-		// Materialize the subclass relation
+		try {
+			// con.add(file, baseURI, RDFFormat.RDFXML);
+			con.add(file, RDFFormat.TURTLE);
+		}
+		catch (java.io.IOException e) {
+			logger.fatal("Could not open the repository file");
+			e.printStackTrace();
+		}
+		catch (RDFParseException e) {
+			logger.fatal("Error parsing the repository file");
+			e.printStackTrace();
+			System.exit(-1);
+		}
+
+        // Materialize the subclass relation
 		// First get the subclass relations
 		String prefix = "PREFIX owl: <http://www.w3.org/2002/07/owl/>\nPREFIX wd: <http://www.wikidata.org/entity/>\n" + "PREFIX wdt: <http://www.wikidata.org/prop/direct/>\n\n";
 		String q = prefix + "SELECT DISTINCT ?s ?o WHERE {?s wdt:P279 ?o}";
+		/*
+		// Jena
 		HashMap<Resource, Set<Resource>> superclasses = new HashMap<>();
 
 		QueryExecution qExec = conn.query(q);
@@ -104,7 +159,9 @@ public class TripleStoreExpert implements ExpertOracle {
 		}
 		qExec.close() ;
 		dataset.commit() ;
+		 */
 
+		// For debugging
 		// String qTmp = prefix + "SELECT DISTINCT ?o WHERE {<" + lastEntity + "> wdt:P31 ?o}\n";
 		// qExec = conn.query(q);
 		// rs = qExec.execSelect() ;
@@ -152,6 +209,8 @@ public class TripleStoreExpert implements ExpertOracle {
 		// TODO: Check for a more efficient way of doing this.
 		// Formulate a single SPARQL query for checking containment of lhs in rhs?
 
+		/*
+		// Jena
 		dataset.begin(ReadWrite.READ) ;
 		Set<Node> resultsLhs = new HashSet<>();
 		conn.queryResultSet(queryStrLhs, rs->{
@@ -174,8 +233,10 @@ public class TripleStoreExpert implements ExpertOracle {
 			});
 		}
 		dataset.end() ;
+		 */
 
 		/*
+		// For debugging
 		QueryExecution qExecLhs = conn.query(queryStrLhs);
 		ResultSet rsLhs = qExecLhs.execSelect() ;
 
@@ -197,10 +258,53 @@ public class TripleStoreExpert implements ExpertOracle {
 		qExecRhs.close() ;
 		 */
 
-		logger.debug("query executed");
+		/*
+		// Jena
 		logger.trace("resultsLhs: " + resultsLhs);
 		logger.trace("resultsRhs: " + resultsRhs);
 		return(resultsRhs.containsAll(resultsLhs));
+		 */
+
+		// TODO: Use instead an ASK query to make it more efficient!
+		Set<Value> resultsLhs = new HashSet<>();
+		TupleQuery queryLhs = con.prepareTupleQuery(queryStrLhs);
+		try {
+			TupleQueryResult result = queryLhs.evaluate();
+			for (BindingSet bindingSet: result) {
+				logger.trace("bindingSet queryLhs:" + bindingSet);
+				Value v = bindingSet.getValue("1");
+				logger.trace("lhs v:" + v);
+				// do something interesting with the values here...
+				resultsLhs.add(v);
+			}
+		} catch (QueryEvaluationException e) {
+			logger.fatal("Error executing the query:" + queryStrLhs);
+            e.printStackTrace();
+			System.exit(-1);
+        }
+
+        Set<Value> resultsRhs = new HashSet<>();
+		TupleQuery queryRhs = con.prepareTupleQuery(queryStrRhs);
+		try {
+			TupleQueryResult result = queryRhs.evaluate();
+			for (BindingSet bindingSet: result) {
+				logger.trace("bindingSet queryRhs:" + bindingSet);
+				Value v = bindingSet.getValue("1");
+				logger.trace("rhs v:" + v);
+				// do something interesting with the values here...
+				resultsRhs.add(v);
+			}
+		} catch (QueryEvaluationException e) {
+			logger.fatal("Error executing the query:" + queryStrRhs);
+			e.printStackTrace();
+			System.exit(-1);
+        }
+
+		logger.debug("query executed");
+		logger.debug("resultsLhs:" + resultsLhs);
+		logger.debug("resultsRhs:" + resultsRhs);
+
+        return(resultsRhs.containsAll(resultsLhs));
 	}
 
 	public OWLOntology getExpertOntology() {
