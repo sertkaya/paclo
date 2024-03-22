@@ -137,7 +137,7 @@ public class PACOntologyLearningSub {
 			samplerQueries++;
             Set<OWLClassExpression> premise = query.getKey();
 			Set<OWLClassExpression> closure = imps.closure(premise);
-            if (!closure.contains(query.getValue()) && isImplicationValid(premise, query.getValue())) {
+            if (!closure.contains(df.getOWLNothing()) && !closure.contains(query.getValue()) && isImplicationValid(premise, query.getValue())) {
                 logger.info("Samples at this iteration: " + samples);
                 return closure;
 			}
@@ -260,10 +260,7 @@ public class PACOntologyLearningSub {
 			if (!found) {
 				Set<OWLClassExpression> newConclusion = new HashSet<OWLClassExpression>(complete(counterExample));
 				// construct the new implication
-				System.out.println("counterexample:" + counterExample);
-				System.out.println("newConclusion:" + newConclusion);
 				newConclusion.removeAll(counterExample);
-				System.out.println("newConclusion:" + newConclusion);
 				Implication newImp = new Implication(counterExample, newConclusion, df);
 				if (imps.add(newImp)) {
 					// add the GCI constructed from newImp to the ontology

@@ -12,8 +12,7 @@ import javafx.util.Pair;
 
 public class RandomSubsumptionSampler implements SubsumptionSamplingOracle {
 	private Set<OWLClassExpression> baseSet;
-	private OWLClassExpression nothing = OWLManager.createOWLOntologyManager().getOWLDataFactory().getOWLNothing();
-	
+
 	public RandomSubsumptionSampler(Set<OWLClassExpression> baseSet) {
 		this.baseSet = baseSet;
 	}

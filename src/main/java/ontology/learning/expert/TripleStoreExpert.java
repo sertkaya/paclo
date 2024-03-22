@@ -42,7 +42,6 @@ public class TripleStoreExpert implements ExpertOracle {
 	private OWLReasoner reasoner;
 
 	private Dataset dataset;
-
 	public TripleStoreExpert(String KGfileName, IRI initialOntology) {
 		pm = new DefaultPrefixManager();
 		pm.setPrefix("wd", "http://www.wikidata.org/entity/");
@@ -76,11 +75,9 @@ public class TripleStoreExpert implements ExpertOracle {
 		qExec.close() ;
 
 		for (Map.Entry<Resource, Set<Resource>> entry : superclasses.entrySet()) {
-			// System.out.println(entry.getKey());
-			// System.out.println(entry.getValue());
 			Resource key = entry.getKey();
 			Set<Resource> value = entry.getValue();
-			System.out.println("Key=" + key + ", Value=" + value);
+			logger.trace("Key=" + key + ", Value=" + value);
 		}
 		// Now add the materialized relations
 		dataset.begin(TxnType.WRITE) ;
@@ -96,12 +93,12 @@ public class TripleStoreExpert implements ExpertOracle {
 			Resource type = qs.getResource("o");
 			if (superclasses.containsKey(type)) {
 				for (Resource supertype : superclasses.get(type)) {
-					System.out.println("ent:" + entity);
-					System.out.println("st:" + supertype);
+					logger.trace("ent:" + entity);
+					logger.trace("st:" + supertype);
 					String insertQuery = prefix + "INSERT DATA {<" + entity + "> wdt:P31 <" + supertype + ">}\n";
 					UpdateRequest request = UpdateFactory.create(insertQuery) ;
 					UpdateExecution.dataset(dataset).update(request).execute();
-					System.out.println(insertQuery);
+					logger.trace(insertQuery);
 				}
 			}
 		}
@@ -149,9 +146,9 @@ public class TripleStoreExpert implements ExpertOracle {
 		String queryStrRhs = OWL2SPARQL.buildQuery(ax.getSuperClass());
 
 		logger.debug("query starting");
-		// logger.debug("ax: " + ax);
-		// logger.debug("queryStrLhs:" + queryStrLhs);
-		// logger.debug("queryStrRhs:" + queryStrRhs);
+		logger.trace("ax: " + ax);
+		logger.trace("queryStrLhs:" + queryStrLhs);
+		logger.trace("queryStrRhs:" + queryStrRhs);
 		// TODO: Check for a more efficient way of doing this.
 		// Formulate a single SPARQL query for checking containment of lhs in rhs?
 
@@ -201,8 +198,8 @@ public class TripleStoreExpert implements ExpertOracle {
 		 */
 
 		logger.debug("query executed");
-		// logger.debug("resultsLhs: " + resultsLhs);
-		// logger.debug("resultsRhs: " + resultsRhs);
+		logger.trace("resultsLhs: " + resultsLhs);
+		logger.trace("resultsRhs: " + resultsRhs);
 		return(resultsRhs.containsAll(resultsLhs));
 	}
 
