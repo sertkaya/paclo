@@ -27,6 +27,9 @@ import org.eclipse.rdf4j.repository.RepositoryException;
 import org.eclipse.rdf4j.repository.sail.SailRepository;
 import org.eclipse.rdf4j.rio.RDFFormat;
 import org.eclipse.rdf4j.rio.RDFParseException;
+import org.eclipse.rdf4j.sail.inferencer.fc.DedupingInferencer;
+import org.eclipse.rdf4j.sail.inferencer.fc.DirectTypeHierarchyInferencer;
+import org.eclipse.rdf4j.sail.inferencer.fc.ForwardChainingRDFSInferencer;
 import org.eclipse.rdf4j.sail.memory.MemoryStore;
 import org.eclipse.rdf4j.sail.inferencer.fc.SchemaCachingRDFSInferencer;
 
@@ -76,8 +79,9 @@ public class TripleStoreExpert implements ExpertOracle {
 		});
 		 */
 		// RDF4J
-		// Repository repo = new SailRepository(new SchemaCachingRDFSInferencer(new MemoryStore()));
-		Repository repo = new SailRepository(new MemoryStore());
+		Repository repo = new SailRepository(new SchemaCachingRDFSInferencer(new MemoryStore()));
+		// Repository repo = new SailRepository(new MemoryStore());
+		// Repository repo = new SailRepository(new DedupingInferencer(new MemoryStore()));
 		File file = new File(KGfileName);
 		try {
 			con = repo.getConnection();
@@ -199,13 +203,31 @@ public class TripleStoreExpert implements ExpertOracle {
     }
 
 	public boolean holds(OWLSubClassOfAxiom ax) {
+
+		/*
+		try {
+			// con.add(file, baseURI, RDFFormat.RDFXML);
+			con.add(file, RDFFormat.TURTLE);
+		}
+		catch (java.io.IOException e) {
+			logger.fatal("Could not open the repository file");
+			e.printStackTrace();
+		}
+		catch (RDFParseException e) {
+			logger.fatal("Error parsing the repository file");
+			e.printStackTrace();
+			System.exit(-1);
+		}
+		 */
+
 		String queryStrLhs = OWL2SPARQL.buildQuery(ax.getSubClass());
 		String queryStrRhs = OWL2SPARQL.buildQuery(ax.getSuperClass());
 
 		logger.debug("query starting");
 		logger.trace("ax: " + ax);
-		logger.trace("queryStrLhs:" + queryStrLhs);
-		logger.trace("queryStrRhs:" + queryStrRhs);
+		logger.trace("queryStrLhs:\n" + queryStrLhs);
+		logger.trace("queryStrRhs:\n" + queryStrRhs);
+		logger.trace("ASK Query:\n" + OWL2SPARQL.buildQuery(ax));
 		// TODO: Check for a more efficient way of doing this.
 		// Formulate a single SPARQL query for checking containment of lhs in rhs?
 
@@ -236,7 +258,7 @@ public class TripleStoreExpert implements ExpertOracle {
 		 */
 
 		/*
-		// For debugging
+		// For debugging Jena
 		QueryExecution qExecLhs = conn.query(queryStrLhs);
 		ResultSet rsLhs = qExecLhs.execSelect() ;
 
@@ -271,10 +293,7 @@ public class TripleStoreExpert implements ExpertOracle {
 		try {
 			TupleQueryResult result = queryLhs.evaluate();
 			for (BindingSet bindingSet: result) {
-				logger.trace("bindingSet queryLhs:" + bindingSet);
 				Value v = bindingSet.getValue("1");
-				logger.trace("lhs v:" + v);
-				// do something interesting with the values here...
 				resultsLhs.add(v);
 			}
 		} catch (QueryEvaluationException e) {
@@ -288,10 +307,7 @@ public class TripleStoreExpert implements ExpertOracle {
 		try {
 			TupleQueryResult result = queryRhs.evaluate();
 			for (BindingSet bindingSet: result) {
-				logger.trace("bindingSet queryRhs:" + bindingSet);
 				Value v = bindingSet.getValue("1");
-				logger.trace("rhs v:" + v);
-				// do something interesting with the values here...
 				resultsRhs.add(v);
 			}
 		} catch (QueryEvaluationException e) {
