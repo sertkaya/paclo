@@ -3,10 +3,7 @@ package ontology.learning.expert;
 import ontology.learning.sparql.OWL2SPARQL;
 
 import org.eclipse.rdf4j.model.Value;
-import org.eclipse.rdf4j.query.BindingSet;
-import org.eclipse.rdf4j.query.QueryEvaluationException;
-import org.eclipse.rdf4j.query.TupleQuery;
-import org.eclipse.rdf4j.query.TupleQueryResult;
+import org.eclipse.rdf4j.query.*;
 import org.eclipse.rdf4j.repository.Repository;
 import org.eclipse.rdf4j.repository.RepositoryConnection;
 import org.eclipse.rdf4j.repository.RepositoryException;
@@ -61,7 +58,7 @@ public class TripleStoreExpert implements ExpertOracle {
 		try {
 			con.add(file, RDFFormat.TURTLE);
 		}
-		catch (java.io.IOException e) {
+		catch (IOException e) {
 			logger.fatal("Could not open the repository file");
 			e.printStackTrace();
 		}
@@ -90,6 +87,7 @@ public class TripleStoreExpert implements ExpertOracle {
 
 	public boolean holds(OWLSubClassOfAxiom ax) {
 
+		/*
 		String queryStrLhs = OWL2SPARQL.buildQuery(ax.getSubClass());
 		String queryStrRhs = OWL2SPARQL.buildQuery(ax.getSuperClass());
 
@@ -131,8 +129,25 @@ public class TripleStoreExpert implements ExpertOracle {
 		logger.debug("query executed");
 		logger.debug("resultsLhs:" + resultsLhs);
 		logger.debug("resultsRhs:" + resultsRhs);
+		boolean selectResult = resultsRhs.containsAll(resultsLhs);
+		 */
 
-        return(resultsRhs.containsAll(resultsLhs));
+		String askQueryStr = OWL2SPARQL.buildQuery(ax);
+		BooleanQuery askQuery = con.prepareBooleanQuery(askQueryStr);
+		boolean askResult = false;
+		try {
+			askResult = askQuery.evaluate();
+		} catch (QueryEvaluationException e) {
+			logger.fatal("Error executing the query:" + askQueryStr);
+			e.printStackTrace();
+			System.exit(-1);
+        }
+
+		// if (askResult == selectResult)
+		// 	logger.error("ASK and SELECT not equivalent!");
+
+		// return(selectResult);
+		return(!askResult);
 	}
 
 	public OWLOntology getExpertOntology() {

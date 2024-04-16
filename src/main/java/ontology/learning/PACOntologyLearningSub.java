@@ -280,11 +280,13 @@ public class PACOntologyLearningSub {
 		OWLOntology resultOntology = null;
 		try {
 			resultOntology = om.createOntology(resultOntologyIRI);
+			resultOntology.add(ontology.getAxioms());
 		} catch (OWLOntologyCreationException e) {
 			logger.fatal("Could not create the result ontology");
             System.exit(-1);
         }
 
+		int axiomCount = 0;
         for (int i = 0; i < imps.size(); ++i) {
 			OWLSubClassOfAxiom ax = imps.get(i).toGCI();
 			if (this.reasoner.isEntailed(ax)) {
@@ -292,6 +294,7 @@ public class PACOntologyLearningSub {
 				logger.debug("Did not add axiom: " + ax);
 			} else {
 				resultOntology.add(ax);
+				++axiomCount;
 				// logger.debug("Added axiom: " + prettyPrintAxiom(ax));
 				logger.debug("Added axiom: " + ax);
 			}
@@ -301,6 +304,7 @@ public class PACOntologyLearningSub {
 		logger.info("Expert queries: " + this.expertQueries);
 		logger.info("Samples generated: " + this.samplerQueries);
 		logger.info("Auxiliary axioms added: " + this.auxiliaryAxiomCount);
+		logger.info("Axioms added: " + axiomCount);
 
 		try {
 			resultOntology.saveOntology(new OWLXMLDocumentFormat(), resultOntologyIRI);

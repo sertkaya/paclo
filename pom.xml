@@ -138,7 +138,7 @@
             <manifest>
               <addClasspath>true</addClasspath>
               <classpathPrefix>lib/</classpathPrefix>
-              <mainClass>ontology.learning.PACloWikiData</mainClass>
+              <mainClass>ontology.learning.PAClo</mainClass>
             </manifest>
           </archive>
         </configuration>

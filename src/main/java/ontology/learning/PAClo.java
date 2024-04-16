@@ -5,6 +5,8 @@ import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.FileReader;
 import java.io.IOException;
+import java.time.Duration;
+import java.time.Instant;
 import java.util.Set;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -66,10 +68,13 @@ public class PAClo {
 		IRI initialOntologyIRI = IRI.create(initialOntology);
 		IRI resultOntologyIRI = IRI.create(resultOntology);
 
+		Instant start = Instant.now();
 		// PACOntologyCompletion pacCompletion = new PACOntologyCompletion(initialOntologyIRI, baseSet, expert, sampler);
 		PACOntologyLearningSub pacCompletion = new PACOntologyLearningSub(initialOntologyIRI, baseSet, expert, sampler);
 		pacCompletion.upperApproximation(epsilon, delta, resultOntologyIRI);
-
+		Instant finish = Instant.now();
+		long timeElapsed = Duration.between(start, finish).toMillis();
+		logger.info("Execution time: " + timeElapsed / 1000);
 	}
 
 }
