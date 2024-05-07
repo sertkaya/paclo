@@ -154,7 +154,7 @@ public class PACOntologyLearning {
 		else
 			queryConjunction = this.df.getOWLObjectIntersectionOf(query);
 		
-		if (queryConjunction.isBottomEntity()) {
+		if (queryConjunction.isBottomEntity() || isImplicationValid(query, df.getOWLNothing())) {
 			Set<OWLClassExpression> s = new HashSet<OWLClassExpression>();
 			s.add(df.getOWLNothing());
 			return(s);
@@ -198,12 +198,15 @@ public class PACOntologyLearning {
 		for (OWLClassExpression c : this.baseSet) {
 			wrongImplicationHash.put(c, new ArrayList<Set<OWLClassExpression>>());
 		}
-		
+		wrongImplicationHash.put(df.getOWLNothing(), new ArrayList<Set<OWLClassExpression>>());
+
 		int iteration = 1;
 		boolean found = false;
 
 		while ((counterExample = getCounterExample(imps, callsToSamplingOracle(epsilon, delta, iteration))) != null) { 
-		    logger.info("Iteration:" + iteration); 
+			logger.info("iteration:" + iteration);
+			logger.info("expert queries:" + this.expertQueries);
+			logger.info("implications:" + imps.size());
 			found = false;
 			Implication imp = null;
 			for (int i = 0; i < imps.size(); i++) {
@@ -236,7 +239,6 @@ public class PACOntologyLearning {
 						this.auxiliaryOntology.add(newAx);
 			            logger.debug("Added non-auxiliary axiom: " + prettyPrintAxiom(newAx));
 
-
 						if (!counterExample.containsAll(newConclusion)) {
 						    break;
 						}
@@ -256,7 +258,7 @@ public class PACOntologyLearning {
 					this.auxiliaryOntology.add(newAx);
 			        logger.debug("Added non-auxiliary axiom: " + prettyPrintAxiom(newAx));
 				} else {
-					logger.debug("Could not add implication: " + newImp);
+					logger.error("Could not add implication: " + newImp);
 				}
 			}
 			++iteration;

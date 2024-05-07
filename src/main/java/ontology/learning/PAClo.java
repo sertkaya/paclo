@@ -12,6 +12,8 @@ import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Map;
 
+import ontology.learning.sampler.RandomSampler;
+import ontology.learning.sampler.SamplingOracle;
 import ontology.learning.utils.Utils;
 import org.semanticweb.owlapi.apibinding.OWLManager;
 import org.semanticweb.owlapi.expression.OWLEntityChecker;
@@ -62,15 +64,15 @@ public class PAClo {
 		
 		Set<OWLClassExpression> baseSet = Utils.readBaseSet(baseSetFile, expert.getExpertOntology());
 		
-		// SamplingOracle sampler = new RandomSampler(baseSet);
-		SubsumptionSamplingOracle sampler = new RandomSubsumptionSampler(baseSet);
+		SamplingOracle sampler = new RandomSampler(baseSet);
+		// SubsumptionSamplingOracle sampler = new RandomSubsumptionSampler(baseSet);
 
 		IRI initialOntologyIRI = IRI.create(initialOntology);
 		IRI resultOntologyIRI = IRI.create(resultOntology);
 
 		Instant start = Instant.now();
-		// PACOntologyCompletion pacCompletion = new PACOntologyCompletion(initialOntologyIRI, baseSet, expert, sampler);
-		PACOntologyLearningSub pacCompletion = new PACOntologyLearningSub(initialOntologyIRI, baseSet, expert, sampler);
+		PACOntologyLearning pacCompletion = new PACOntologyLearning(initialOntologyIRI, baseSet, expert, sampler);
+		// PACOntologyLearningSub pacCompletion = new PACOntologyLearningSub(initialOntologyIRI, baseSet, expert, sampler);
 		pacCompletion.upperApproximation(epsilon, delta, resultOntologyIRI);
 		Instant finish = Instant.now();
 		long timeElapsed = Duration.between(start, finish).toMillis();
