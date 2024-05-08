@@ -124,7 +124,7 @@ public class PACOntologyLearning {
 			Set<OWLClassExpression> closure = imps.closure(query);
 		
 			for (OWLClassExpression c : this.baseSet) {
-				if (!closure.contains(c) && isImplicationValid(closure, c)) {
+				if (!closure.contains(df.getOWLNothing()) && !closure.contains(c) && isImplicationValid(closure, c)) {
 			            logger.info("Number of samples: " + samples);
 						return closure;
 				}
@@ -155,6 +155,7 @@ public class PACOntologyLearning {
 			queryConjunction = this.df.getOWLObjectIntersectionOf(query);
 		
 		if (queryConjunction.isBottomEntity() || isImplicationValid(query, df.getOWLNothing())) {
+		// if (queryConjunction.isBottomEntity()) {
 			Set<OWLClassExpression> s = new HashSet<OWLClassExpression>();
 			s.add(df.getOWLNothing());
 			return(s);
@@ -166,7 +167,6 @@ public class PACOntologyLearning {
 				completion.add(c);
 			}
 		}
-		
 		return(completion);
 	}
 	
