@@ -98,20 +98,28 @@ public class TripleStoreExpert implements ExpertOracle {
 		logger.trace("ASK Query:\n" + OWL2SPARQL.buildQuery(ax));
 
 		// TODO: Use instead an ASK query to make it more efficient!
-		Set<Value> resultsLhs = new HashSet<>();
-		TupleQuery queryLhs = con.prepareTupleQuery(queryStrLhs);
-		try {
-			TupleQueryResult result = queryLhs.evaluate();
-			for (BindingSet bindingSet: result) {
-				Value v = bindingSet.getValue("1");
-				resultsLhs.add(v);
-			}
-		} catch (QueryEvaluationException e) {
-			logger.fatal("Error executing the query:" + queryStrLhs);
-            e.printStackTrace();
-			System.exit(-1);
-        }
+		*/
 
+		if (ax.getSuperClass().isOWLNothing()) {
+			String queryStrLhs = OWL2SPARQL.buildQuery(ax.getSubClass());
+			Set<Value> resultsLhs = new HashSet<>();
+			TupleQuery queryLhs = con.prepareTupleQuery(queryStrLhs);
+			try {
+				TupleQueryResult result = queryLhs.evaluate();
+				for (BindingSet bindingSet : result) {
+					Value v = bindingSet.getValue("1");
+					resultsLhs.add(v);
+				}
+			} catch (QueryEvaluationException e) {
+				logger.fatal("Error executing the query:" + queryStrLhs);
+				e.printStackTrace();
+				System.exit(-1);
+			}
+
+			return(resultsLhs.isEmpty());
+		}
+
+		/*
         Set<Value> resultsRhs = new HashSet<>();
 		TupleQuery queryRhs = con.prepareTupleQuery(queryStrRhs);
 		try {
