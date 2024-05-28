@@ -35,20 +35,17 @@ import ontology.learning.sampler.SubsumptionSamplingOracle;
 public class PACOntologyLearningSub {
 	
 	private OWLOntology ontology;
-	private OWLOntology auxiliaryOntology;
 	private OWLOntologyManager om;
 	private OWLDataFactory df;
 	private OWLReasonerFactory rf;
 	private OWLReasoner reasoner;
-	private OWLReasoner auxiliaryReasoner;
-	
+
 	private Set<OWLClassExpression> baseSet;
 	private ExpertOracle expert;
 	private SubsumptionSamplingOracle sampler;
 
 	private int expertQueries;
 	private int samplerQueries;
-	private int auxiliaryAxiomCount;
 
 	private Logger logger = LogManager.getLogger("PACOntologyLearningSub");
 
@@ -74,30 +71,24 @@ public class PACOntologyLearningSub {
 		// or let the user select from a list?
 
 		OWLOntology ontology = null;
-		OWLOntology auxiliaryOntology = null;
 		try {
 			ontology = om.loadOntology(ontologyIRI);
 		    logger.debug("Successfully loaded ontology");
-			auxiliaryOntology = OWLManager.createOWLOntologyManager().loadOntology(ontologyIRI);
 		}
 		catch (OWLOntologyCreationException e) {
 		    logger.fatal("Error loading ontology");
 			System.exit(-1);
 		}
 		this.ontology = ontology;
-		this.auxiliaryOntology = auxiliaryOntology;
-		
+
 		this.reasoner = rf.createNonBufferingReasoner(ontology);
 		this.reasoner.precomputeInferences(InferenceType.CLASS_HIERARCHY);
-		this.auxiliaryReasoner = rf.createNonBufferingReasoner(auxiliaryOntology);
-		this.auxiliaryReasoner.precomputeInferences(InferenceType.CLASS_HIERARCHY);
 
 		this.expert = expert;
 		this.sampler = sampler;
 		
 		this.expertQueries = 0;
-		this.auxiliaryAxiomCount = 0;
-		
+
 		this.wrongImplicationHash = null;
 	}
 
@@ -112,16 +103,8 @@ public class PACOntologyLearningSub {
 		OWLClassExpression queryConjunction = premise.isEmpty() ? df.getOWLThing() : this.df.getOWLObjectIntersectionOf(premise);
 		OWLSubClassOfAxiom ax = df.getOWLSubClassOfAxiom(queryConjunction, conclusion);
 
-		if (this.auxiliaryReasoner.isEntailed(ax)) {
-			return true;
-		}
-
 		expertQueries++;
 		if (this.expert.holds(ax)) {
-			this.auxiliaryOntology.add(ax);
-			++this.auxiliaryAxiomCount;
-			// logger.debug("Added auxiliary axiom: " + prettyPrintAxiom(ax));
-			logger.debug("Added auxiliary axiom: " + ax);
 			return true;
 		}
 
@@ -216,7 +199,6 @@ public class PACOntologyLearningSub {
 
 		while ((counterExample = getCounterExample(imps, callsToSamplingOracle(epsilon, delta, iteration))) != null) { 
 			logger.info("iteration:" + iteration);
-			logger.info("auxiliary axioms:" + this.auxiliaryAxiomCount);
 			logger.info("expert queries:" + this.expertQueries);
 			logger.info("implications:" + imps.size());
 			found = false;
@@ -227,8 +209,6 @@ public class PACOntologyLearningSub {
 					Set<OWLClassExpression> newPremise = new HashSet<OWLClassExpression>(imp.getPremise());
 					newPremise.retainAll(counterExample);
 				
-					// ontology is the initial ontology extended with GCIs resulting from new implications.
-					// every change to the implication set (like adding or removing implications) should be reflected to the ontology
 					Set<OWLClassExpression> newConclusion = new HashSet<OWLClassExpression>(complete(newPremise));
 					if (!newPremise.equals(newConclusion)) {
 						found = true;
@@ -239,17 +219,12 @@ public class PACOntologyLearningSub {
 						// replace imp with the newImp
 						imps.set(i, newImp);
 						
-						// get the GCI corresponding to imp
-						// OWLSubClassOfAxiom ax = implicationAxiomHash.get(imp);
-						// remove the GCI constructed from imp from the ontology
-						// this.ontology.remove(ax);
-
 						// add the GCI constructed from newImp to the ontology
 						OWLSubClassOfAxiom newAx = newImp.toGCI();
-						// implicationAxiomHash.put(newImp, newAx);
+						// TODO: SHOULDN'T IT BE this.ontology.add(newAx) ???
+						// this.auxiliaryOntology.add(newAx);
 						// this.ontology.add(newAx);
-						this.auxiliaryOntology.add(newAx);
-						logger.debug("Added non-auxiliary axiom: " + prettyPrintAxiom(newAx));
+						// logger.debug("Added non-auxiliary axiom: " + prettyPrintAxiom(newAx));
 
 						if (!counterExample.containsAll(newConclusion)) {
 						    break;
@@ -265,10 +240,10 @@ public class PACOntologyLearningSub {
 				if (imps.add(newImp)) {
 					// add the GCI constructed from newImp to the ontology
 					OWLSubClassOfAxiom newAx = newImp.toGCI();
-					// implicationAxiomHash.put(newImp, newAx);
+					// TODO: SHOULDN'T IT BE this.ontology.add(newAx) ???
+					// this.auxiliaryOntology.add(newAx);
 					// this.ontology.add(newAx);
-					this.auxiliaryOntology.add(newAx);
-					logger.debug("Added non-auxiliary axiom: " + prettyPrintAxiom(newAx));
+					// logger.debug("Added non-auxiliary axiom: " + prettyPrintAxiom(newAx));
 				} else {
 					logger.error("Could not add implication: " + newImp);
 
@@ -303,7 +278,6 @@ public class PACOntologyLearningSub {
 	    logger.info("Total iterations: " + (iteration - 1));
 		logger.info("Expert queries: " + this.expertQueries);
 		logger.info("Samples generated: " + this.samplerQueries);
-		logger.info("Auxiliary axioms added: " + this.auxiliaryAxiomCount);
 		logger.info("Axioms added: " + axiomCount);
 
 		try {
