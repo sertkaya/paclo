@@ -4,8 +4,6 @@ import java.util.HashSet;
 import java.util.Random;
 import java.util.Set;
 
-import org.obolibrary.obo2owl.OwlStringTools.OwlStringException;
-import org.semanticweb.owlapi.apibinding.OWLManager;
 import org.semanticweb.owlapi.model.OWLClassExpression;
 
 import javafx.util.Pair;

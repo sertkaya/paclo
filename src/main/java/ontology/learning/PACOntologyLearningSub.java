@@ -5,26 +5,18 @@ import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.Hashtable;
 
-import org.apache.commons.logging.impl.Log4JLogger;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
-import org.semanticweb.HermiT.ReasonerFactory;
-// import org.semanticweb.elk.owlapi.ElkReasonerFactory;
-import org.semanticweb.owlapi.apibinding.OWLManager;
 import org.semanticweb.owlapi.formats.OWLXMLDocumentFormat;
-import org.semanticweb.owlapi.formats.OWLXMLDocumentFormatFactory;
 import org.semanticweb.owlapi.model.IRI;
 import org.semanticweb.owlapi.model.OWLClassExpression;
 import org.semanticweb.owlapi.model.OWLDataFactory;
-import org.semanticweb.owlapi.model.OWLException;
 import org.semanticweb.owlapi.model.OWLOntology;
 import org.semanticweb.owlapi.model.OWLOntologyCreationException;
 import org.semanticweb.owlapi.model.OWLOntologyManager;
 import org.semanticweb.owlapi.model.OWLOntologyStorageException;
 import org.semanticweb.owlapi.model.OWLSubClassOfAxiom;
-import org.semanticweb.owlapi.reasoner.InferenceType;
 import org.semanticweb.owlapi.reasoner.OWLReasoner;
-import org.semanticweb.owlapi.reasoner.OWLReasonerFactory;
 
 import javafx.util.Pair;
 import ontology.learning.expert.ExpertOracle;
@@ -37,7 +29,6 @@ public class PACOntologyLearningSub {
 	private OWLOntology ontology;
 	private OWLOntologyManager om;
 	private OWLDataFactory df;
-	// private OWLReasonerFactory rf;
 	private OWLReasoner reasoner;
 
 	private Set<OWLClassExpression> baseSet;
@@ -52,56 +43,31 @@ public class PACOntologyLearningSub {
 	private Hashtable<OWLClassExpression, ArrayList<Set<OWLClassExpression>>> wrongImplicationHash;
 
 	/**
-	 * @param baseSet
-	 * @param ontology: IRI of the (possibly empty) initial ontology 
-	 * @param expert: The domain expert 
-	 * @param sampler
+	 * @param ontology: The initial ontology
+	 * @param baseSet: Set with the concept descriptions
+	 * @param expert: The domain expert
+	 * @param sampler: Sampling oracle
+	 * @param om: The ontology manager
+	 * @param reasoner
 	 */
-	// public PACOntologyLearningSub(IRI ontologyIRI,
 	public PACOntologyLearningSub(OWLOntology ontology,
                                     Set<OWLClassExpression> baseSet,
                                     ExpertOracle expert, 
                                     SubsumptionSamplingOracle sampler,
 								  	OWLOntologyManager om,
 								  	OWLReasoner reasoner) {
-		/*
-		om = OWLManager.createOWLOntologyManager();
-		df = om.getOWLDataFactory();
-		rf = new ReasonerFactory();
-		// rf = new ElkReasonerFactory();
-		 */
-
-		// this.baseSet = new HashSet<OWLClassExpression>(baseSet);
 		this.baseSet = baseSet;
-
-		/*
-		OWLOntology ontology = null;
-		try {
-			ontology = om.loadOntology(ontologyIRI);
-		    logger.debug("Successfully loaded ontology");
-		}
-		catch (OWLOntologyCreationException e) {
-		    logger.fatal("Error loading ontology");
-			System.exit(-1);
-		}
-		 */
-
 		this.ontology = ontology;
 
-		/*
-		this.reasoner = rf.createNonBufferingReasoner(ontology);
-		this.reasoner.precomputeInferences(InferenceType.CLASS_HIERARCHY);
-		 */
+		this.om = om;
+		this.df = om.getOWLDataFactory();
+		this.reasoner = reasoner;
 
 		this.expert = expert;
 		this.sampler = sampler;
 		
 		this.expertQueries = 0;
-
 		this.wrongImplicationHash = null;
-		this.om = om;
-		this.df = om.getOWLDataFactory();
-		this.reasoner = reasoner;
 	}
 
 	private boolean isImplicationValid(Set<OWLClassExpression> premise, OWLClassExpression conclusion) {
@@ -176,15 +142,6 @@ public class PACOntologyLearningSub {
 		return(completion);
 	}
 	
-	public String prettyPrintAxiom(OWLSubClassOfAxiom ax) {
-		// not a neat solution, but works
-		String axStr = ax.toString();
-		int i = axStr.lastIndexOf("<");
-		int j = axStr.lastIndexOf("/") + 1;
-		String pattern = axStr.substring(i, j);
-		String s = axStr.replaceAll(pattern, "").replaceAll(">", "");
-		return(s);
-	}
 	/**
 	 * Computes an upper approximation of expert's view of the domain.
 	 */
@@ -264,12 +221,10 @@ public class PACOntologyLearningSub {
         for (int i = 0; i < imps.size(); ++i) {
 			OWLSubClassOfAxiom ax = imps.get(i).toGCI();
 			if (this.reasoner.isEntailed(ax)) {
-				// logger.debug("Did not add axiom: " + prettyPrintAxiom(ax));
 				logger.debug("Did not add axiom: " + ax);
 			} else {
 				resultOntology.add(ax);
 				++axiomCount;
-				// logger.debug("Added axiom: " + prettyPrintAxiom(ax));
 				logger.debug("Added axiom: " + ax);
 			}
 		}
@@ -287,5 +242,4 @@ public class PACOntologyLearningSub {
 		}
 		return(resultOntology);
 	}
-
 }

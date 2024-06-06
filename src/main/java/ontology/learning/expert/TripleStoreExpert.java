@@ -16,13 +16,7 @@ import org.eclipse.rdf4j.sail.inferencer.fc.SchemaCachingRDFSInferencer;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
-import org.semanticweb.HermiT.ReasonerFactory;
-import org.semanticweb.owlapi.apibinding.OWLManager;
 import org.semanticweb.owlapi.model.*;
-
-import org.semanticweb.owlapi.reasoner.InferenceType;
-import org.semanticweb.owlapi.reasoner.OWLReasoner;
-import org.semanticweb.owlapi.reasoner.OWLReasonerFactory;
 import org.semanticweb.owlapi.util.DefaultPrefixManager;
 
 import java.io.*;
@@ -31,13 +25,10 @@ import java.util.*;
 public class TripleStoreExpert implements ExpertOracle {
 	protected static final Logger logger = LogManager.getLogger();
 
-	private OWLOntology ontology;
 	RepositoryConnection con;
 
 	private PrefixManager pm;
-	// private OWLReasoner reasoner;
 
-	// public TripleStoreExpert(String KGfileName, IRI initialOntology) {
 	public TripleStoreExpert(String KGfileName) {
 		pm = new DefaultPrefixManager();
 		pm.setPrefix("wd", "http://www.wikidata.org/entity/");
@@ -92,19 +83,6 @@ public class TripleStoreExpert implements ExpertOracle {
 
 	public boolean holds(OWLSubClassOfAxiom ax) {
 
-		/*
-		String queryStrLhs = OWL2SPARQL.buildQuery(ax.getSubClass());
-		String queryStrRhs = OWL2SPARQL.buildQuery(ax.getSuperClass());
-
-		logger.debug("query starting");
-		logger.trace("ax: " + ax);
-		logger.trace("queryStrLhs:\n" + queryStrLhs);
-		logger.trace("queryStrRhs:\n" + queryStrRhs);
-		logger.trace("ASK Query:\n" + OWL2SPARQL.buildQuery(ax));
-
-		// TODO: Use instead an ASK query to make it more efficient!
-		*/
-
 		if (ax.getSuperClass().isOWLNothing()) {
 			String queryStrLhs = OWL2SPARQL.buildQuery(ax.getSubClass());
 			Set<Value> resultsLhs = new HashSet<>();
@@ -124,27 +102,6 @@ public class TripleStoreExpert implements ExpertOracle {
 			return(resultsLhs.isEmpty());
 		}
 
-		/*
-        Set<Value> resultsRhs = new HashSet<>();
-		TupleQuery queryRhs = con.prepareTupleQuery(queryStrRhs);
-		try {
-			TupleQueryResult result = queryRhs.evaluate();
-			for (BindingSet bindingSet: result) {
-				Value v = bindingSet.getValue("1");
-				resultsRhs.add(v);
-			}
-		} catch (QueryEvaluationException e) {
-			logger.fatal("Error executing the query:" + queryStrRhs);
-			e.printStackTrace();
-			System.exit(-1);
-        }
-
-		logger.debug("query executed");
-		logger.debug("resultsLhs:" + resultsLhs);
-		logger.debug("resultsRhs:" + resultsRhs);
-		boolean selectResult = resultsRhs.containsAll(resultsLhs);
-		 */
-
 		String askQueryStr = OWL2SPARQL.buildQuery(ax);
 		BooleanQuery askQuery = con.prepareBooleanQuery(askQueryStr);
 		boolean askResult = false;
@@ -156,18 +113,8 @@ public class TripleStoreExpert implements ExpertOracle {
 			System.exit(-1);
         }
 
-		// if (askResult == selectResult)
-		// 	logger.error("ASK and SELECT not equivalent!");
-
-		// return(selectResult);
 		return(!askResult);
 	}
-
-	/*
-	public OWLOntology getExpertOntology() {
-		return(this.ontology);
-	}
-	 */
 
 	public PrefixManager getPrefixManager() {
 		return pm;

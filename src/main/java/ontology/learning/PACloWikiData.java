@@ -2,9 +2,7 @@ package ontology.learning;
 
 import ontology.learning.expert.ExpertOracle;
 import ontology.learning.expert.TripleStoreExpert;
-import ontology.learning.sampler.RandomSampler;
 import ontology.learning.sampler.RandomSubsumptionSampler;
-import ontology.learning.sampler.SamplingOracle;
 import ontology.learning.sampler.SubsumptionSamplingOracle;
 import ontology.learning.utils.Utils;
 import org.apache.logging.log4j.LogManager;
@@ -61,23 +59,17 @@ public class PACloWikiData {
 		// Measure time
 		Instant start = Instant.now();
 
-		// ExpertOracle expert = new TripleStoreExpert(knowledgeGraph, initialOntologyIRI);
 		ExpertOracle expert = new TripleStoreExpert(knowledgeGraph);
 
-		// Set<OWLClassExpression> baseSet = Utils.readBaseSet(baseSetFile, expert.getExpertOntology());
 		Set<OWLClassExpression> baseSet = Utils.readBaseSet(baseSetFile, initialOntology);
 
-		// SamplingOracle sampler = new RandomSampler(baseSet);
 		SubsumptionSamplingOracle sampler = new RandomSubsumptionSampler(baseSet);
 
-		// PACOntologyLearning pacCompletion = new PACOntologyLearning(initialOntologyIRI, baseSet, expert, sampler);
 		PACOntologyLearningSub pacCompletion = new PACOntologyLearningSub(initialOntology, baseSet, expert, sampler, om, reasoner);
 		pacCompletion.upperApproximation(epsilon, delta, resultOntologyIRI);
 
 		Instant finish = Instant.now();
 		long timeElapsed = Duration.between(start, finish).toMillis();
 		logger.info("Execution time: " + timeElapsed / 1000);
-
 	}
-
 }
