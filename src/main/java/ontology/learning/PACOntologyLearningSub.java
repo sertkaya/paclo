@@ -219,13 +219,6 @@ public class PACOntologyLearningSub {
 						// replace imp with the newImp
 						imps.set(i, newImp);
 						
-						// add the GCI constructed from newImp to the ontology
-						OWLSubClassOfAxiom newAx = newImp.toGCI();
-						// TODO: SHOULDN'T IT BE this.ontology.add(newAx) ???
-						// this.auxiliaryOntology.add(newAx);
-						// this.ontology.add(newAx);
-						// logger.debug("Added non-auxiliary axiom: " + prettyPrintAxiom(newAx));
-
 						if (!counterExample.containsAll(newConclusion)) {
 						    break;
 						}
@@ -238,12 +231,7 @@ public class PACOntologyLearningSub {
 				newConclusion.removeAll(counterExample);
 				Implication newImp = new Implication(counterExample, newConclusion, df);
 				if (imps.add(newImp)) {
-					// add the GCI constructed from newImp to the ontology
-					OWLSubClassOfAxiom newAx = newImp.toGCI();
-					// TODO: SHOULDN'T IT BE this.ontology.add(newAx) ???
-					// this.auxiliaryOntology.add(newAx);
-					// this.ontology.add(newAx);
-					// logger.debug("Added non-auxiliary axiom: " + prettyPrintAxiom(newAx));
+					logger.debug("Added implication: " + newImp);
 				} else {
 					logger.error("Could not add implication: " + newImp);
 
