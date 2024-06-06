@@ -11,6 +11,6 @@ public interface ExpertOracle {
 	public boolean holds(OWLSubClassOfAxiom ax);
 	// public boolean holds(Set<OWLClassExpression> p, Set<OWLClassExpression> c);
 	
-	public OWLOntology getExpertOntology();
+	// public OWLOntology getExpertOntology();
 	
 }

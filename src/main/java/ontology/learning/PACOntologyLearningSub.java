@@ -37,7 +37,7 @@ public class PACOntologyLearningSub {
 	private OWLOntology ontology;
 	private OWLOntologyManager om;
 	private OWLDataFactory df;
-	private OWLReasonerFactory rf;
+	// private OWLReasonerFactory rf;
 	private OWLReasoner reasoner;
 
 	private Set<OWLClassExpression> baseSet;
@@ -57,19 +57,24 @@ public class PACOntologyLearningSub {
 	 * @param expert: The domain expert 
 	 * @param sampler
 	 */
-	public PACOntologyLearningSub(IRI ontologyIRI,
-                                    Set<OWLClassExpression> baseSet, 
+	// public PACOntologyLearningSub(IRI ontologyIRI,
+	public PACOntologyLearningSub(OWLOntology ontology,
+                                    Set<OWLClassExpression> baseSet,
                                     ExpertOracle expert, 
-                                    SubsumptionSamplingOracle sampler) {
+                                    SubsumptionSamplingOracle sampler,
+								  	OWLOntologyManager om,
+								  	OWLReasoner reasoner) {
+		/*
 		om = OWLManager.createOWLOntologyManager();
 		df = om.getOWLDataFactory();
 		rf = new ReasonerFactory();
 		// rf = new ElkReasonerFactory();
+		 */
 
-		this.baseSet = new HashSet<OWLClassExpression>(baseSet);
-		// TODO: read the baseSet! From file? 
-		// or let the user select from a list?
+		// this.baseSet = new HashSet<OWLClassExpression>(baseSet);
+		this.baseSet = baseSet;
 
+		/*
 		OWLOntology ontology = null;
 		try {
 			ontology = om.loadOntology(ontologyIRI);
@@ -79,10 +84,14 @@ public class PACOntologyLearningSub {
 		    logger.fatal("Error loading ontology");
 			System.exit(-1);
 		}
+		 */
+
 		this.ontology = ontology;
 
+		/*
 		this.reasoner = rf.createNonBufferingReasoner(ontology);
 		this.reasoner.precomputeInferences(InferenceType.CLASS_HIERARCHY);
+		 */
 
 		this.expert = expert;
 		this.sampler = sampler;
@@ -90,6 +99,9 @@ public class PACOntologyLearningSub {
 		this.expertQueries = 0;
 
 		this.wrongImplicationHash = null;
+		this.om = om;
+		this.df = om.getOWLDataFactory();
+		this.reasoner = reasoner;
 	}
 
 	private boolean isImplicationValid(Set<OWLClassExpression> premise, OWLClassExpression conclusion) {
@@ -155,7 +167,7 @@ public class PACOntologyLearningSub {
 		}
 
 		Set<OWLClassExpression> completion = new HashSet<OWLClassExpression>(query);
-		for (OWLClassExpression c : this.baseSet) {
+		for (OWLClassExpression c : baseSet) {
 			if (!query.contains(c) && isImplicationValid(query, c)) {
 				completion.add(c);
 			}
@@ -175,7 +187,6 @@ public class PACOntologyLearningSub {
 	}
 	/**
 	 * Computes an upper approximation of expert's view of the domain.
-	 * @param ontology the initial ontology
 	 */
 	public OWLOntology upperApproximation(double epsilon, double delta, IRI resultOntologyIRI) {
 		expertQueries = 0;
@@ -189,7 +200,7 @@ public class PACOntologyLearningSub {
 		// Hashtable<Implication, OWLSubClassOfAxiom> implicationAxiomHash = new Hashtable<>();
 
 		wrongImplicationHash = new Hashtable<>();
-		for (OWLClassExpression c : this.baseSet) {
+		for (OWLClassExpression c : baseSet) {
 			wrongImplicationHash.put(c, new ArrayList<Set<OWLClassExpression>>());
 		}
 		wrongImplicationHash.put(df.getOWLNothing(), new ArrayList<Set<OWLClassExpression>>());

@@ -9,8 +9,12 @@ import ontology.learning.sampler.SubsumptionSamplingOracle;
 import ontology.learning.utils.Utils;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
-import org.semanticweb.owlapi.model.IRI;
-import org.semanticweb.owlapi.model.OWLClassExpression;
+import org.semanticweb.HermiT.ReasonerFactory;
+import org.semanticweb.owlapi.apibinding.OWLManager;
+import org.semanticweb.owlapi.model.*;
+import org.semanticweb.owlapi.reasoner.OWLReasoner;
+import org.semanticweb.owlapi.reasoner.OWLReasonerFactory;
+import org.semanticweb.owlapi.reasoner.InferenceType;
 
 import java.io.File;
 import java.time.Duration;
@@ -29,26 +33,45 @@ public class PACloWikiData {
 		double epsilon = Double.parseDouble(args[0]);
 		double delta = Double.parseDouble(args[1]);
 		
-		File initialOntology = new File(args[2]);
+		File initialOntologyStr = new File(args[2]);
 		String knowledgeGraph = args[3];
 		File baseSetFile = new File(args[4]);
-		File resultOntology = new File(args[5]);
+		File resultOntologyStr = new File(args[5]);
+
+		IRI initialOntologyIRI = IRI.create(initialOntologyStr);
+		IRI resultOntologyIRI = IRI.create(resultOntologyStr);
+
+		OWLOntologyManager om = OWLManager.createOWLOntologyManager();
+		OWLDataFactory df = om.getOWLDataFactory();
+		OWLReasonerFactory rf = new ReasonerFactory();
+
+		OWLOntology initialOntology = null;
+		try {
+			initialOntology = om.loadOntology(initialOntologyIRI);
+			logger.debug("Successfully loaded ontology");
+		}
+		catch (OWLOntologyCreationException e) {
+			logger.fatal("Error loading ontology");
+			System.exit(-1);
+		}
+
+		OWLReasoner reasoner = rf.createReasoner(initialOntology);
+		reasoner.precomputeInferences(InferenceType.CLASS_HIERARCHY);
 
 		// Measure time
 		Instant start = Instant.now();
 
-		IRI initialOntologyIRI = IRI.create(initialOntology);
-		IRI resultOntologyIRI = IRI.create(resultOntology);
+		// ExpertOracle expert = new TripleStoreExpert(knowledgeGraph, initialOntologyIRI);
+		ExpertOracle expert = new TripleStoreExpert(knowledgeGraph);
 
-		ExpertOracle expert = new TripleStoreExpert(knowledgeGraph, initialOntologyIRI);
-
-		Set<OWLClassExpression> baseSet = Utils.readBaseSet(baseSetFile, expert.getExpertOntology());
+		// Set<OWLClassExpression> baseSet = Utils.readBaseSet(baseSetFile, expert.getExpertOntology());
+		Set<OWLClassExpression> baseSet = Utils.readBaseSet(baseSetFile, initialOntology);
 
 		// SamplingOracle sampler = new RandomSampler(baseSet);
 		SubsumptionSamplingOracle sampler = new RandomSubsumptionSampler(baseSet);
 
 		// PACOntologyLearning pacCompletion = new PACOntologyLearning(initialOntologyIRI, baseSet, expert, sampler);
-		PACOntologyLearningSub pacCompletion = new PACOntologyLearningSub(initialOntologyIRI, baseSet, expert, sampler);
+		PACOntologyLearningSub pacCompletion = new PACOntologyLearningSub(initialOntology, baseSet, expert, sampler, om, reasoner);
 		pacCompletion.upperApproximation(epsilon, delta, resultOntologyIRI);
 
 		Instant finish = Instant.now();

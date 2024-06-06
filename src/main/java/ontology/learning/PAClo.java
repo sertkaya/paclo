@@ -15,21 +15,14 @@ import java.util.Map;
 import ontology.learning.sampler.RandomSampler;
 import ontology.learning.sampler.SamplingOracle;
 import ontology.learning.utils.Utils;
+import org.semanticweb.HermiT.ReasonerFactory;
 import org.semanticweb.owlapi.apibinding.OWLManager;
 import org.semanticweb.owlapi.expression.OWLEntityChecker;
 import org.semanticweb.owlapi.manchestersyntax.parser.ManchesterOWLSyntaxParserImpl;
-import org.semanticweb.owlapi.model.IRI;
-import org.semanticweb.owlapi.model.OWLAnnotationProperty;
-import org.semanticweb.owlapi.model.OWLClass;
-import org.semanticweb.owlapi.model.OWLClassExpression;
-import org.semanticweb.owlapi.model.OWLDataFactory;
-import org.semanticweb.owlapi.model.OWLDataProperty;
-import org.semanticweb.owlapi.model.OWLDatatype;
-import org.semanticweb.owlapi.model.OWLEntity;
-import org.semanticweb.owlapi.model.OWLNamedIndividual;
-import org.semanticweb.owlapi.model.OWLObjectProperty;
-import org.semanticweb.owlapi.model.OWLOntology;
-import org.semanticweb.owlapi.model.OWLOntologyManager;
+import org.semanticweb.owlapi.model.*;
+import org.semanticweb.owlapi.reasoner.InferenceType;
+import org.semanticweb.owlapi.reasoner.OWLReasoner;
+import org.semanticweb.owlapi.reasoner.OWLReasonerFactory;
 import org.semanticweb.owlapi.util.mansyntax.ManchesterOWLSyntaxParser;
 
 import ontology.learning.expert.ExpertOracle;
@@ -54,21 +47,39 @@ public class PAClo {
 		double epsilon = Double.parseDouble(args[0]);
 		double delta = Double.parseDouble(args[1]);
 		
-		File initialOntology = new File(args[2]);
-		File expertOntology = new File(args[3]);
+		File initialOntologyStr = new File(args[2]);
+		File expertOntologyStr = new File(args[3]);
 		File baseSetFile = new File(args[4]);
-		File resultOntology = new File(args[5]);
-		
-		IRI expertOntologyIRI = IRI.create(expertOntology);
+		File resultOntologyStr = new File(args[5]);
+
+		IRI initialOntologyIRI = IRI.create(initialOntologyStr);
+		IRI resultOntologyIRI = IRI.create(resultOntologyStr);
+
+		IRI expertOntologyIRI = IRI.create(expertOntologyStr);
 		ExpertOracle expert = new ReasonerExpert(expertOntologyIRI);
-		
-		Set<OWLClassExpression> baseSet = Utils.readBaseSet(baseSetFile, expert.getExpertOntology());
-		
+
+		OWLOntologyManager om = OWLManager.createOWLOntologyManager();
+		OWLDataFactory df = om.getOWLDataFactory();
+		OWLReasonerFactory rf = new ReasonerFactory();
+
+		OWLOntology initialOntology = null;
+		try {
+			initialOntology = om.loadOntology(initialOntologyIRI);
+			logger.debug("Successfully loaded ontology");
+		}
+		catch (OWLOntologyCreationException e) {
+			logger.fatal("Error loading ontology");
+			System.exit(-1);
+		}
+
+		OWLReasoner reasoner = rf.createReasoner(initialOntology);
+		reasoner.precomputeInferences(InferenceType.CLASS_HIERARCHY);
+
+		// Set<OWLClassExpression> baseSet = Utils.readBaseSet(baseSetFile, expert.getExpertOntology());
+		Set<OWLClassExpression> baseSet = Utils.readBaseSet(baseSetFile, initialOntology);
+
 		SamplingOracle sampler = new RandomSampler(baseSet);
 		// SubsumptionSamplingOracle sampler = new RandomSubsumptionSampler(baseSet);
-
-		IRI initialOntologyIRI = IRI.create(initialOntology);
-		IRI resultOntologyIRI = IRI.create(resultOntology);
 
 		Instant start = Instant.now();
 		PACOntologyLearning pacCompletion = new PACOntologyLearning(initialOntologyIRI, baseSet, expert, sampler);

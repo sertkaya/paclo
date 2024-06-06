@@ -24,9 +24,9 @@ public class TestTripleStoreExpert {
 		String kg = "/home/bs/research/dev/paclo/src/test/resources/example-1.ttl";
 		String ontology = "/home/bs/research/dev/paclo/src/test/resources/emptyOntology.owx";
 		String baseSetFileName = "/home/bs/research/dev/paclo/src/test/resources/baseSet-example-1";
-		TripleStoreExpert expert = new TripleStoreExpert(kg, IRI.create(ontology));
+		TripleStoreExpert expert = new TripleStoreExpert(kg);
 		File baseSetFile = new File(baseSetFileName);
-		Set<OWLClassExpression> baseSet = Utils.readBaseSet(baseSetFile, expert.getExpertOntology());
+		// Set<OWLClassExpression> baseSet = Utils.readBaseSet(baseSetFile, expert.getExpertOntology());
 
 		OWLObjectProperty p31 = df.getOWLObjectProperty("wdt:P31", expert.getPrefixManager());
 		OWLObjectProperty p40 = df.getOWLObjectProperty("wdt:P40", expert.getPrefixManager());

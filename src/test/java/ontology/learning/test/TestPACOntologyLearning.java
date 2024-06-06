@@ -66,9 +66,7 @@ public class TestPACOntologyLearning {
 		File expertOntology = new File("/home/bs/research/dev/pacco/src/test/resources/expertOntology.owx");
 		IRI expertOntologyIRI = IRI.create(expertOntology);
 		ExpertOracle expert = new ReasonerExpert(expertOntologyIRI);
-		System.out.println("Ontology prefix: " + expert.getExpertOntology().getOntologyID().getOntologyIRI().get());
 		System.out.println("Axioms:");
-		expert.getExpertOntology().logicalAxioms().forEach(System.out::println);
 
 		SamplingOracle sampler = new RandomSampler(baseSet);
 
@@ -95,11 +93,11 @@ public class TestPACOntologyLearning {
 		}));
 		clsExprP.parse("Class: <http://www.semanticweb.org/bs/ontologies/2023/11/untitled-ontology-20#A>");
 		*/
-		
+
 		OWLOntology ontology = null;
 		try {
-			// ontology = om.createOntology(IRI.create("urn:test:test"));
-			ontology = om.createOntology(expert.getExpertOntology().getOntologyID().getOntologyIRI().get());
+			ontology = om.createOntology(IRI.create("urn:test:test"));
+			// ontology = om.createOntology(expert.getExpertOntology().getOntologyID().getOntologyIRI().get());
 		} catch (OWLOntologyCreationException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
@@ -107,8 +105,8 @@ public class TestPACOntologyLearning {
 		OWLDataFactory datafactory = ontology.getOWLOntologyManager().getOWLDataFactory();
 		// ontology.add(df.getOWLDeclarationAxiom(df.getOWLClass("urn:test:A")));
 	    // ontology.add(df.getOWLDeclarationAxiom(df.getOWLClass("urn:test:B")));
-		ontology.add(df.getOWLDeclarationAxiom(df.getOWLClass(expert.getExpertOntology().getOntologyID().getOntologyIRI().get() + "#" + "A")));
-		ontology.add(df.getOWLDeclarationAxiom(df.getOWLClass(expert.getExpertOntology().getOntologyID().getOntologyIRI().get() + "#" + "B")));
+		// ontology.add(df.getOWLDeclarationAxiom(df.getOWLClass(expert.getExpertOntology().getOntologyID().getOntologyIRI().get() + "#" + "A")));
+		// ontology.add(df.getOWLDeclarationAxiom(df.getOWLClass(expert.getExpertOntology().getOntologyID().getOntologyIRI().get() + "#" + "B")));
 		ManchesterOWLSyntaxParser parser = new ManchesterOWLSyntaxParserImpl(om.getOntologyConfigurator(), df);
 		parser.setDefaultOntology(ontology);
 		

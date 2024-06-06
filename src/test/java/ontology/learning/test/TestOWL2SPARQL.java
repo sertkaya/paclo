@@ -102,7 +102,7 @@ public class TestOWL2SPARQL {
 
 		String kg = "/home/bs/research/dev/pacco/src/test/resources/eu-g7-members.ttl";
 		String ontology = "/home/bs/research/dev/pacco/src/test/resources/eu-members-declarations.owx";
-		TripleStoreExpert expert = new TripleStoreExpert(kg, IRI.create(ontology));
+		TripleStoreExpert expert = new TripleStoreExpert(kg);
 		System.out.println(OWL2SPARQL.buildQuery(df.getOWLObjectIntersectionOf(baseSet)));
 
 	}

@@ -35,9 +35,10 @@ public class TripleStoreExpert implements ExpertOracle {
 	RepositoryConnection con;
 
 	private PrefixManager pm;
-	private OWLReasoner reasoner;
+	// private OWLReasoner reasoner;
 
-	public TripleStoreExpert(String KGfileName, IRI initialOntology) {
+	// public TripleStoreExpert(String KGfileName, IRI initialOntology) {
+	public TripleStoreExpert(String KGfileName) {
 		pm = new DefaultPrefixManager();
 		pm.setPrefix("wd", "http://www.wikidata.org/entity/");
 		pm.setPrefix("wdt", "http://www.wikidata.org/prop/direct/");
@@ -68,6 +69,7 @@ public class TripleStoreExpert implements ExpertOracle {
 			System.exit(-1);
 		}
 
+		/*
         OWLOntologyManager om = OWLManager.createOWLOntologyManager();
 		OWLDataFactory df = om.getOWLDataFactory();
 		try {
@@ -78,10 +80,13 @@ public class TripleStoreExpert implements ExpertOracle {
 			e.printStackTrace();
 			System.exit(-1);
 		}
+		 */
 
+		/*
 		OWLReasonerFactory rf = new ReasonerFactory();
 		this.reasoner = rf.createReasoner(ontology);
 		this.reasoner.precomputeInferences(InferenceType.CLASS_HIERARCHY);
+		 */
 
     }
 
@@ -158,9 +163,11 @@ public class TripleStoreExpert implements ExpertOracle {
 		return(!askResult);
 	}
 
+	/*
 	public OWLOntology getExpertOntology() {
 		return(this.ontology);
 	}
+	 */
 
 	public PrefixManager getPrefixManager() {
 		return pm;
