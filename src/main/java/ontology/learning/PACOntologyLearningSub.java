@@ -1,5 +1,7 @@
 package ontology.learning;
 
+import java.time.Duration;
+import java.time.Instant;
 import java.util.Set;
 import java.util.ArrayList;
 import java.util.HashSet;
@@ -82,7 +84,15 @@ public class PACOntologyLearningSub {
 		OWLSubClassOfAxiom ax = df.getOWLSubClassOfAxiom(queryConjunction, conclusion);
 
 		expertQueries++;
-		if (this.expert.holds(ax)) {
+		Instant start = Instant.now();
+		logger.info("expert starting");
+		logger.info("axiom:" + ax);
+		boolean entailed = this.expert.holds(ax);
+		Instant finish = Instant.now();
+		long timeElapsed = Duration.between(start, finish).toMillis();
+		logger.info("expert took time: " + timeElapsed / 1000);
+		// if (this.expert.holds(ax)) {
+		if (entailed) {
 			return true;
 		}
 
@@ -94,6 +104,7 @@ public class PACOntologyLearningSub {
 		int samples = 0;
 		for (int i = 0; i < k; ++i) {
 			Pair<Set<OWLClassExpression>, OWLClassExpression>  query = this.sampler.sample();
+
 			samples++;
 			samplerQueries++;
             Set<OWLClassExpression> premise = query.getKey();
