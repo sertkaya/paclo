@@ -5,7 +5,7 @@ import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.Hashtable;
 
-import org.semanticweb.HermiT.ReasonerFactory;
+import org.semanticweb.elk.owlapi.ElkReasonerFactory;
 import org.semanticweb.owlapi.apibinding.OWLManager;
 import org.semanticweb.owlapi.model.IRI;
 import org.semanticweb.owlapi.model.OWLClassExpression;
@@ -56,7 +56,7 @@ public class PACOntologyLearning {
 	public PACOntologyLearning(IRI ontologyIRI, Set<OWLClassExpression> baseSet, ExpertOracle expert, SamplingOracle sampler) {
 		om = OWLManager.createOWLOntologyManager();
 		df = om.getOWLDataFactory();
-		rf = new ReasonerFactory();
+		rf = new ElkReasonerFactory();
 
 		this.baseSet = new HashSet<OWLClassExpression>(baseSet);
 		// TODO: read the baseSet! From file? 

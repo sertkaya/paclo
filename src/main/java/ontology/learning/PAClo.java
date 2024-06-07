@@ -8,7 +8,7 @@ import java.util.Set;
 import ontology.learning.sampler.RandomSampler;
 import ontology.learning.sampler.SamplingOracle;
 import ontology.learning.utils.Utils;
-import org.semanticweb.HermiT.ReasonerFactory;
+import org.semanticweb.elk.owlapi.ElkReasonerFactory;
 import org.semanticweb.owlapi.apibinding.OWLManager;
 import org.semanticweb.owlapi.model.*;
 import org.semanticweb.owlapi.reasoner.InferenceType;
@@ -48,7 +48,7 @@ public class PAClo {
 
 		OWLOntologyManager om = OWLManager.createOWLOntologyManager();
 		OWLDataFactory df = om.getOWLDataFactory();
-		OWLReasonerFactory rf = new ReasonerFactory();
+		OWLReasonerFactory rf = new ElkReasonerFactory();
 
 		OWLOntology initialOntology = null;
 		try {

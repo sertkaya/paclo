@@ -5,12 +5,12 @@ import org.apache.logging.log4j.Logger;
 import org.semanticweb.owlapi.model.OWLOntologyManager;
 import org.semanticweb.owlapi.model.OWLSubClassOfAxiom;
 import org.semanticweb.owlapi.model.OWLOntology;
-import org.semanticweb.HermiT.ReasonerFactory;
 import org.semanticweb.owlapi.apibinding.OWLManager;
 import org.semanticweb.owlapi.model.IRI;
 import org.semanticweb.owlapi.reasoner.InferenceType;
 import org.semanticweb.owlapi.reasoner.OWLReasoner;
 import org.semanticweb.owlapi.reasoner.OWLReasonerFactory;
+import org.semanticweb.elk.owlapi.ElkReasonerFactory;
 
 import ontology.learning.Implication;
 
@@ -35,7 +35,7 @@ public class ReasonerExpert implements ExpertOracle {
 			logger.fatal("Error loading ontology");
 			System.exit(-1);
 		}
-		OWLReasonerFactory rf = new ReasonerFactory();
+		OWLReasonerFactory rf = new ElkReasonerFactory();
 		this.reasoner = rf.createReasoner(ontology);
 		this.reasoner.precomputeInferences(InferenceType.CLASS_HIERARCHY);
 	}
