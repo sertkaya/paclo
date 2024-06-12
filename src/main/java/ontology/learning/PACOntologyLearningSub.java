@@ -85,12 +85,14 @@ public class PACOntologyLearningSub {
 
 		expertQueries++;
 		Instant start = Instant.now();
-		logger.info("expert starting");
-		logger.info("axiom:" + ax);
+		// logger.info("expert starting");
 		boolean entailed = this.expert.holds(ax);
 		Instant finish = Instant.now();
 		long timeElapsed = Duration.between(start, finish).toMillis();
-		logger.info("expert took time: " + timeElapsed / 1000);
+		if (timeElapsed > 0) {
+			logger.info("axiom:" + ax);
+			logger.info("expert took time: " + timeElapsed / 1000);
+		}
 		// if (this.expert.holds(ax)) {
 		if (entailed) {
 			return true;
