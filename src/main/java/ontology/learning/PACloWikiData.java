@@ -2,7 +2,9 @@ package ontology.learning;
 
 import ontology.learning.expert.ExpertOracle;
 import ontology.learning.expert.TripleStoreExpert;
+import ontology.learning.sampler.RandomSampler;
 import ontology.learning.sampler.RandomSubsumptionSampler;
+import ontology.learning.sampler.SamplingOracle;
 import ontology.learning.sampler.SubsumptionSamplingOracle;
 import ontology.learning.utils.Utils;
 import org.apache.logging.log4j.LogManager;
@@ -63,9 +65,11 @@ public class PACloWikiData {
 
 		Set<OWLClassExpression> baseSet = Utils.readBaseSet(baseSetFile, initialOntology);
 
-		SubsumptionSamplingOracle sampler = new RandomSubsumptionSampler(baseSet);
+		// SubsumptionSamplingOracle sampler = new RandomSubsumptionSampler(baseSet);
+		SamplingOracle sampler = new RandomSampler(baseSet);
 
-		PACOntologyLearningSub pacCompletion = new PACOntologyLearningSub(initialOntology, baseSet, expert, sampler, om, reasoner);
+		// PACOntologyLearningSub pacCompletion = new PACOntologyLearningSub(initialOntology, baseSet, expert, sampler, om, reasoner);
+		PACOntologyLearning pacCompletion = new PACOntologyLearning(initialOntology, baseSet, expert, sampler, om, reasoner);
 		pacCompletion.upperApproximation(epsilon, delta, resultOntologyIRI);
 
 		Instant finish = Instant.now();

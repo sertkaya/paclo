@@ -7,6 +7,7 @@ import java.util.Hashtable;
 
 import org.semanticweb.HermiT.ReasonerFactory;
 import org.semanticweb.owlapi.apibinding.OWLManager;
+import org.semanticweb.owlapi.formats.OWLXMLDocumentFormat;
 import org.semanticweb.owlapi.model.IRI;
 import org.semanticweb.owlapi.model.OWLClassExpression;
 import org.semanticweb.owlapi.model.OWLDataFactory;
@@ -53,40 +54,37 @@ public class PACOntologyLearning {
 	 * @param expert: The domain expert 
 	 * @param sampler
 	 */
-	public PACOntologyLearning(IRI ontologyIRI, Set<OWLClassExpression> baseSet, ExpertOracle expert, SamplingOracle sampler) {
-		om = OWLManager.createOWLOntologyManager();
-		df = om.getOWLDataFactory();
-		rf = new ReasonerFactory();
-
+	public PACOntologyLearning(OWLOntology ontology,
+							   Set<OWLClassExpression> baseSet,
+							   ExpertOracle expert,
+							   SamplingOracle sampler,
+							   OWLOntologyManager om,
+							   OWLReasoner reasoner) {
 		this.baseSet = new HashSet<OWLClassExpression>(baseSet);
-		// TODO: read the baseSet! From file? 
-		// or let the user select from a list?
-
-		OWLOntology ontology = null;
-		OWLOntology auxiliaryOntology = null;
-		try {
-			ontology = om.loadOntology(ontologyIRI);
-		    logger.debug("Successfully loaded ontology");
-			auxiliaryOntology = OWLManager.createOWLOntologyManager().loadOntology(ontologyIRI);
-		}
-		catch (OWLOntologyCreationException e) {
-		    logger.fatal("Error loading ontology");
-			System.exit(-1);
-		}
 		this.ontology = ontology;
-		this.auxiliaryOntology = auxiliaryOntology;
-		
-		this.reasoner = rf.createNonBufferingReasoner(ontology);
-		this.reasoner.precomputeInferences(InferenceType.CLASS_HIERARCHY);
-		this.auxiliaryReasoner = rf.createNonBufferingReasoner(auxiliaryOntology);
-		this.auxiliaryReasoner.precomputeInferences(InferenceType.CLASS_HIERARCHY);
+
+		this.om = om;
+		this.df = om.getOWLDataFactory();
+		this.reasoner = reasoner;
 
 		this.expert = expert;
 		this.sampler = sampler;
-		
+
 		this.expertQueries = 0;
-		
 		this.wrongImplicationHash = null;
+
+		OWLOntology auxiliaryOntology = null;
+		try {
+			auxiliaryOntology = om.createOntology(ontology.getAxioms());
+		}
+		catch (OWLOntologyCreationException e) {
+			logger.fatal("Error creating auxiliary ontology");
+			System.exit(-1);
+		}
+		this.auxiliaryOntology = auxiliaryOntology;
+		ReasonerFactory rf = new ReasonerFactory();
+		this.auxiliaryReasoner = rf.createNonBufferingReasoner(auxiliaryOntology);
+		this.auxiliaryReasoner.precomputeInferences(InferenceType.CLASS_HIERARCHY);
 	}
 
 	private boolean isImplicationValid(Set<OWLClassExpression> premise, OWLClassExpression conclusion) {
@@ -99,10 +97,12 @@ public class PACOntologyLearning {
 
 		OWLClassExpression queryConjunction = premise.isEmpty() ? df.getOWLThing() : this.df.getOWLObjectIntersectionOf(premise);
 		OWLSubClassOfAxiom ax = df.getOWLSubClassOfAxiom(queryConjunction, conclusion);
-		
+
+		/*
 		if (this.auxiliaryReasoner.isEntailed(ax)) {
 			return true;
 		}
+		*/
 
 		expertQueries++;
 		if (this.expert.holds(ax)) {
@@ -181,7 +181,6 @@ public class PACOntologyLearning {
 	}
 	/**
 	 * Computes an upper approximation of expert's view of the domain.
-	 * @param ontology the initial ontology
 	 */
 	public OWLOntology upperApproximation(double epsilon, double delta, IRI resultOntologyIRI) {
 		expertQueries = 0;
@@ -215,8 +214,6 @@ public class PACOntologyLearning {
 					Set<OWLClassExpression> newPremise = new HashSet<OWLClassExpression>(imp.getPremise());
 					newPremise.retainAll(counterExample);
 				
-					// ontology is the initial ontology extended with GCIs resulting from new implications.
-					// every change to the implication set (like adding or removing implications) should be reflected to the ontology
 					Set<OWLClassExpression> newConclusion = new HashSet<OWLClassExpression>(complete(newPremise));
 					if (!newPremise.equals(newConclusion)) {
 						found = true;
@@ -264,27 +261,39 @@ public class PACOntologyLearning {
 			++iteration;
 		}
 
+		OWLOntology resultOntology = null;
+		try {
+			resultOntology = om.createOntology(resultOntologyIRI);
+			resultOntology.add(ontology.getAxioms());
+		} catch (OWLOntologyCreationException e) {
+			logger.fatal("Could not create the result ontology");
+			System.exit(-1);
+		}
+
+		int axiomCount = 0;
 		for (int i = 0; i < imps.size(); ++i) {
 			OWLSubClassOfAxiom ax = imps.get(i).toGCI();
 			if (this.reasoner.isEntailed(ax)) {
-				logger.debug("Did not add axiom: " + prettyPrintAxiom(ax));
+				logger.debug("Did not add axiom: " + ax);
 			} else {
-				this.ontology.add(ax);
-		        logger.debug("Added axiom: " + prettyPrintAxiom(ax));
+				resultOntology.add(ax);
+				++axiomCount;
+		        logger.debug("Added axiom: " + ax);
 			}
 		}
 
 	    logger.info("Total iterations: " + (iteration - 1));
-	    logger.info("Expert queries: " + expertQueries);
-	    logger.info("Samples generated: " + samplerQueries);
+	    logger.info("Expert queries: " + this.expertQueries);
+	    logger.info("Samples generated: " + this.samplerQueries);
+		logger.info("Axioms added: " + axiomCount);
 
 		try {
-			ontology.saveOntology(resultOntologyIRI);
+			resultOntology.saveOntology(new OWLXMLDocumentFormat(), resultOntologyIRI);
 		} catch (OWLOntologyStorageException e) {
-		    logger.fatal("Error while saving ontology");
+			logger.fatal("Error while saving result ontology");
 			e.printStackTrace();
 		}
-		return(ontology);
+		return(resultOntology);
 	}
 
 }

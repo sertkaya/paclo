@@ -20,6 +20,8 @@ import org.semanticweb.owlapi.model.*;
 import org.semanticweb.owlapi.util.DefaultPrefixManager;
 
 import java.io.*;
+import java.time.Duration;
+import java.time.Instant;
 import java.util.*;
 
 public class TripleStoreExpert implements ExpertOracle {
@@ -83,6 +85,7 @@ public class TripleStoreExpert implements ExpertOracle {
 
 	public boolean holds(OWLSubClassOfAxiom ax) {
 
+		Instant start = Instant.now();
 		if (ax.getSuperClass().isOWLNothing()) {
 			String queryStrLhs = OWL2SPARQL.buildQuery(ax.getSubClass());
 			Set<Value> resultsLhs = new HashSet<>();
@@ -99,6 +102,12 @@ public class TripleStoreExpert implements ExpertOracle {
 				System.exit(-1);
 			}
 
+			Instant finish = Instant.now();
+			long timeElapsed = Duration.between(start, finish).toMillis();
+			if (timeElapsed > 500) {
+				logger.info("SPARQL query took time: " + timeElapsed + " miliseconds.");
+				logger.info("query:" + queryStrLhs + " ==> " + ax.getSuperClass());
+			}
 			return(resultsLhs.isEmpty());
 		}
 
@@ -113,6 +122,13 @@ public class TripleStoreExpert implements ExpertOracle {
 			System.exit(-1);
         }
 
+		Instant finish = Instant.now();
+		long timeElapsed = Duration.between(start, finish).toMillis();
+		logger.info("query:" + askQueryStr);
+		if (timeElapsed > 500) {
+			logger.info("SPARQL query took time: " + timeElapsed + " miliseconds.");
+			logger.info("query:" + askQueryStr);
+		}
 		return(!askResult);
 	}
 

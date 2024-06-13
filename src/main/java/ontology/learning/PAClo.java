@@ -68,7 +68,7 @@ public class PAClo {
 		SamplingOracle sampler = new RandomSampler(baseSet);
 
 		Instant start = Instant.now();
-		PACOntologyLearning pacCompletion = new PACOntologyLearning(initialOntologyIRI, baseSet, expert, sampler);
+		PACOntologyLearning pacCompletion = new PACOntologyLearning(initialOntology, baseSet, expert, sampler, om, reasoner);
 		pacCompletion.upperApproximation(epsilon, delta, resultOntologyIRI);
 		Instant finish = Instant.now();
 		long timeElapsed = Duration.between(start, finish).toMillis();

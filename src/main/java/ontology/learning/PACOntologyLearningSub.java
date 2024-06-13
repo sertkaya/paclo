@@ -84,15 +84,7 @@ public class PACOntologyLearningSub {
 		OWLSubClassOfAxiom ax = df.getOWLSubClassOfAxiom(queryConjunction, conclusion);
 
 		expertQueries++;
-		Instant start = Instant.now();
-		logger.info("expert starting");
-		logger.info("axiom:" + ax);
-		boolean entailed = this.expert.holds(ax);
-		Instant finish = Instant.now();
-		long timeElapsed = Duration.between(start, finish).toMillis();
-		logger.info("expert took time: " + timeElapsed / 1000);
-		// if (this.expert.holds(ax)) {
-		if (entailed) {
+		if (this.expert.holds(ax)) {
 			return true;
 		}
 

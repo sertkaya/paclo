@@ -16,8 +16,12 @@ public class OWL2SPARQL {
 
     protected static final Logger logger = LogManager.getLogger();
 
-    static String prefixStr = "PREFIX owl: <http://www.w3.org/2002/07/owl/>\nPREFIX wd: <http://www.wikidata.org/entity/>\n" +
-        "PREFIX wdt: <http://www.wikidata.org/prop/direct/>\n\n";
+    static String prefixStr =
+            "PREFIX owl: <http://www.w3.org/2002/07/owl/>\n" +
+            "PREFIX wd: <http://www.wikidata.org/entity/>\n" +
+            "PREFIX wdt: <http://www.wikidata.org/prop/direct/>\n" +
+            "PREFIX rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#>\n" +
+            "PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>\n\n";
     public static String buildQuery(OWLSubClassOfAxiom ax) {
         String queryStr = prefixStr + "ASK {\n";
         queryStr += buildWhereClause(1, ax.getSubClass().getNNF(), 0);
@@ -57,7 +61,8 @@ public class OWL2SPARQL {
                 // return(s + " wdt:P31/wdt:P279* " + c + ".\n");
                 // return(s + " <http://www.w3.org/1999/02/22-rdf-syntax-ns#type>/<http://www.w3.org/2000/01/rdf-schema#subClassOf>* " + c + ".\n");
                 // return(s + " wdt:P31 " + c + ".\n");
-                return(s + " <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> " + c + ".\n");
+                // return(s + " <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> " + c + ".\n");
+                return(s + " rdf:type " + c + ".\n");
             case OBJECT_SOME_VALUES_FROM:
                 String p = (((OWLObjectSomeValuesFrom) c).getProperty()).toString();
                 int object = 10 * subject + successorCount;
