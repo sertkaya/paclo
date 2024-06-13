@@ -85,11 +85,18 @@ public class TripleStoreExpert implements ExpertOracle {
 	public boolean holds(OWLSubClassOfAxiom ax) {
 
 		String askQueryStr = OWL2SPARQL.buildQuery(ax);
+		Instant start = Instant.now();
 		Query query = QueryFactory.create(askQueryStr) ;
 
 		QueryExecution qexec = QueryExecutionFactory.create(query, this.inferencingModel) ;
 		boolean askResult = qexec.execAsk() ;
 		qexec.close() ;
+		Instant finish = Instant.now();
+		long timeElapsed = Duration.between(start, finish).toMillis();
+		if (timeElapsed > 500) {
+			logger.info("SPARQL query took time: " + timeElapsed + " miliseconds.");
+			logger.info("query:" + askQueryStr);
+		}
 
 
 		/*
