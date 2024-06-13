@@ -61,26 +61,6 @@ public class TripleStoreExpert implements ExpertOracle {
 			e.printStackTrace();
 			System.exit(-1);
 		}
-
-		/*
-        OWLOntologyManager om = OWLManager.createOWLOntologyManager();
-		OWLDataFactory df = om.getOWLDataFactory();
-		try {
-			this.ontology = om.loadOntology(initialOntology);
-		}
-		catch (OWLOntologyCreationException e) {
-			logger.fatal("Error loading ontology");
-			e.printStackTrace();
-			System.exit(-1);
-		}
-		 */
-
-		/*
-		OWLReasonerFactory rf = new ReasonerFactory();
-		this.reasoner = rf.createReasoner(ontology);
-		this.reasoner.precomputeInferences(InferenceType.CLASS_HIERARCHY);
-		 */
-
     }
 
 	public boolean holds(OWLSubClassOfAxiom ax) {
