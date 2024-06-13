@@ -2,17 +2,20 @@ package ontology.learning.expert;
 
 import ontology.learning.sparql.OWL2SPARQL;
 
-import org.eclipse.rdf4j.model.Value;
-import org.eclipse.rdf4j.query.*;
-import org.eclipse.rdf4j.repository.Repository;
-import org.eclipse.rdf4j.repository.RepositoryConnection;
-import org.eclipse.rdf4j.repository.RepositoryException;
-import org.eclipse.rdf4j.repository.sail.SailRepository;
-import org.eclipse.rdf4j.rio.RDFFormat;
-import org.eclipse.rdf4j.rio.RDFParseException;
-import org.eclipse.rdf4j.sail.memory.MemoryStore;
-import org.eclipse.rdf4j.sail.inferencer.fc.SchemaCachingRDFSInferencer;
-
+import org.apache.jena.graph.*;
+import org.apache.jena.query.Query;
+import org.apache.jena.query.QueryExecution;
+import org.apache.jena.query.QueryExecutionFactory;
+import org.apache.jena.query.QueryFactory;
+import org.apache.jena.rdf.model.InfModel;
+import org.apache.jena.rdf.model.Model;
+import org.apache.jena.rdf.model.ModelFactory;
+import org.apache.jena.reasoner.*;
+import org.apache.jena.riot.RDFDataMgr;
+import org.apache.jena.shared.AddDeniedException;
+import org.apache.jena.shared.DeleteDeniedException;
+import org.apache.jena.shared.PrefixMapping;
+import org.apache.jena.util.iterator.ExtendedIterator;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
@@ -24,20 +27,34 @@ import java.time.Duration;
 import java.time.Instant;
 import java.util.*;
 
+import static org.apache.jena.vocabulary.SchemaDO.model;
+
 public class TripleStoreExpert implements ExpertOracle {
 	protected static final Logger logger = LogManager.getLogger();
 
-	RepositoryConnection con;
+	// RepositoryConnection con;
 
 	private PrefixManager pm;
 
+	private Reasoner rdfsReasoner;
+
+	private Model graph;
+
+	private InfModel inferencingModel;
 	public TripleStoreExpert(String KGfileName) {
 		pm = new DefaultPrefixManager();
 		pm.setPrefix("wd", "http://www.wikidata.org/entity/");
 		pm.setPrefix("wdt", "http://www.wikidata.org/prop/direct/");
 		pm.setPrefix("owl", "http://www.w3.org/2002/07/owl/");
 
+		this.graph = RDFDataMgr.loadModel(KGfileName);
+		// this.rdfsReasoner = ReasonerRegistry.getRDFSReasoner();
+		// this.rdfsReasoner = this.rdfsReasoner.bindSchema(graph);
+
+		this.inferencingModel = ModelFactory.createRDFSModel(graph);
+
 		// RDF4J
+		/*
 		Repository repo = new SailRepository(new SchemaCachingRDFSInferencer(new MemoryStore()));
 
 		File file = new File(KGfileName);
@@ -61,30 +78,21 @@ public class TripleStoreExpert implements ExpertOracle {
 			e.printStackTrace();
 			System.exit(-1);
 		}
-
-		/*
-        OWLOntologyManager om = OWLManager.createOWLOntologyManager();
-		OWLDataFactory df = om.getOWLDataFactory();
-		try {
-			this.ontology = om.loadOntology(initialOntology);
-		}
-		catch (OWLOntologyCreationException e) {
-			logger.fatal("Error loading ontology");
-			e.printStackTrace();
-			System.exit(-1);
-		}
-		 */
-
-		/*
-		OWLReasonerFactory rf = new ReasonerFactory();
-		this.reasoner = rf.createReasoner(ontology);
-		this.reasoner.precomputeInferences(InferenceType.CLASS_HIERARCHY);
 		 */
 
     }
 
 	public boolean holds(OWLSubClassOfAxiom ax) {
 
+		String askQueryStr = OWL2SPARQL.buildQuery(ax);
+		Query query = QueryFactory.create(askQueryStr) ;
+
+		QueryExecution qexec = QueryExecutionFactory.create(query, this.inferencingModel) ;
+		boolean askResult = qexec.execAsk() ;
+		qexec.close() ;
+
+
+		/*
 		Instant start = Instant.now();
 		if (ax.getSuperClass().isOWLNothing()) {
 			String queryStrLhs = OWL2SPARQL.buildQuery(ax.getSubClass());
@@ -124,11 +132,11 @@ public class TripleStoreExpert implements ExpertOracle {
 
 		Instant finish = Instant.now();
 		long timeElapsed = Duration.between(start, finish).toMillis();
-		logger.info("query:" + askQueryStr);
 		if (timeElapsed > 500) {
 			logger.info("SPARQL query took time: " + timeElapsed + " miliseconds.");
 			logger.info("query:" + askQueryStr);
 		}
+		*/
 		return(!askResult);
 	}
 

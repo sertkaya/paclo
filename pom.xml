@@ -71,7 +71,7 @@
       <version>2.0.12</version>
     </dependency>
     -->
-    <!-- Apache Jena
+    <!-- Apache Jena -->
     <dependency>
       <groupId>org.apache.jena</groupId>
       <artifactId>apache-jena-libs</artifactId>
@@ -83,15 +83,14 @@
       <artifactId>jena-core</artifactId>
       <version>4.10.0</version>
     </dependency>
-    -->
+    <dependency>
+      <groupId>org.apache.jena</groupId>
+      <artifactId>jena-arq</artifactId>
+      <version>4.10.0</version>
+    </dependency>
+
     <!-- RDF4j -->
     <!--
-    <dependency>
-      <groupId>org.eclipse.rdf4j</groupId>
-      <artifactId>rdf4j-client</artifactId>
-      <version>5.0.0-M2</version>
-    </dependency>
-    -->
     <dependency>
       <groupId>org.eclipse.rdf4j</groupId>
       <artifactId>rdf4j-repository-sail</artifactId>
@@ -113,6 +112,7 @@
       <artifactId>rdf4j-rio-turtle</artifactId>
       <version>4.2.0</version>
     </dependency>
+    -->
   </dependencies>
   <build>
     <plugins>
