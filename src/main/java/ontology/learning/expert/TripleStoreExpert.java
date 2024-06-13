@@ -124,7 +124,6 @@ public class TripleStoreExpert implements ExpertOracle {
 
 		Instant finish = Instant.now();
 		long timeElapsed = Duration.between(start, finish).toMillis();
-		logger.info("query:" + askQueryStr);
 		if (timeElapsed > 500) {
 			logger.info("SPARQL query took time: " + timeElapsed + " miliseconds.");
 			logger.info("query:" + askQueryStr);
