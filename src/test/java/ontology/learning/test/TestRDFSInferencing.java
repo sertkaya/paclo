@@ -15,8 +15,9 @@ public class TestRDFSInferencing {
 	
 	public static void main(String[] args) {
 
-		String kg = "/home/bs/research/dev/paclo/src/test/resources/example-rdfs.ttl";
-		TripleStoreExpert expert = new TripleStoreExpert(kg);
+		String kg = "/home/bs/research/dev/paclo/src/test/resources/example-rdfs-data.ttl";
+		String schema = "/home/bs/research/dev/paclo/src/test/resources/example-rdfs-schema.ttl";
+		TripleStoreExpert expert = new TripleStoreExpert(kg, schema);
 
 		// top
 		OWLClassExpression thing = df.getOWLThing();
@@ -29,10 +30,12 @@ public class TestRDFSInferencing {
 		OWLClassExpression exC = df.getOWLClass("http://example.org/C");
 		// ex:D
 		OWLClassExpression exD = df.getOWLClass("http://example.org/D");
+		// ex:E
+		OWLClassExpression exE = df.getOWLClass("http://example.org/E");
 
 
-		// (child some human) --> (child some male)
-		OWLSubClassOfAxiom ax = om.getOWLDataFactory().getOWLSubClassOfAxiom(exB, exD);
+		// B ==> E
+		OWLSubClassOfAxiom ax = om.getOWLDataFactory().getOWLSubClassOfAxiom(exB, exE);
 
 		logger.info("Axiom:" + ax);
 		if (expert.holds(ax))

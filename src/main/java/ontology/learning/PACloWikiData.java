@@ -26,8 +26,8 @@ public class PACloWikiData {
 
 	public static void main(String[] args) {
 
-		if (args.length != 6) {
-			logger.fatal("Usage: epsilon delta initialOntology knowledgeGraph baseSetFile outputOntology");
+		if (args.length != 7) {
+			logger.fatal("Usage: epsilon delta initialOntology knowledgeGraph baseSetFile outputOntology schema");
 			System.exit(-1);
 		}
 		double epsilon = Double.parseDouble(args[0]);
@@ -37,6 +37,7 @@ public class PACloWikiData {
 		String knowledgeGraph = args[3];
 		File baseSetFile = new File(args[4]);
 		File resultOntologyStr = new File(args[5]);
+		String schema = args[6];
 
 		IRI initialOntologyIRI = IRI.create(initialOntologyStr);
 		IRI resultOntologyIRI = IRI.create(resultOntologyStr);
@@ -61,7 +62,7 @@ public class PACloWikiData {
 		// Measure time
 		Instant start = Instant.now();
 
-		ExpertOracle expert = new TripleStoreExpert(knowledgeGraph);
+		ExpertOracle expert = new TripleStoreExpert(knowledgeGraph, schema);
 
 		Set<OWLClassExpression> baseSet = Utils.readBaseSet(baseSetFile, initialOntology);
 

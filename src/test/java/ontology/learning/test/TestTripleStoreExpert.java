@@ -22,7 +22,8 @@ public class TestTripleStoreExpert {
 	public static void main(String[] args) {
 
 		String kg = "/home/bs/research/dev/paclo/src/test/resources/family-example/family-rdfs.ttl";
-		TripleStoreExpert expert = new TripleStoreExpert(kg);
+		String schema = "/home/bs/research/dev/paclo/src/test/resources/family-example/family-rdfs-schema.ttl";
+		TripleStoreExpert expert = new TripleStoreExpert(kg, schema);
 
 		OWLObjectProperty p31 = df.getOWLObjectProperty("wdt:P31", expert.getPrefixManager());
 		OWLObjectProperty p40 = df.getOWLObjectProperty("wdt:P40", expert.getPrefixManager());
