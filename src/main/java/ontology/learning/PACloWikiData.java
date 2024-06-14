@@ -65,11 +65,11 @@ public class PACloWikiData {
 
 		Set<OWLClassExpression> baseSet = Utils.readBaseSet(baseSetFile, initialOntology);
 
-		// SubsumptionSamplingOracle sampler = new RandomSubsumptionSampler(baseSet);
-		SamplingOracle sampler = new RandomSampler(baseSet);
+		SubsumptionSamplingOracle sampler = new RandomSubsumptionSampler(baseSet);
+		// SamplingOracle sampler = new RandomSampler(baseSet);
 
-		// PACOntologyLearningSub pacCompletion = new PACOntologyLearningSub(initialOntology, baseSet, expert, sampler, om, reasoner);
-		PACOntologyLearning pacCompletion = new PACOntologyLearning(initialOntology, baseSet, expert, sampler, om, reasoner);
+		PACOntologyLearningSub pacCompletion = new PACOntologyLearningSub(initialOntology, baseSet, expert, sampler, om, reasoner);
+		// PACOntologyLearning pacCompletion = new PACOntologyLearning(initialOntology, baseSet, expert, sampler, om, reasoner);
 		pacCompletion.upperApproximation(epsilon, delta, resultOntologyIRI);
 
 		Instant finish = Instant.now();
