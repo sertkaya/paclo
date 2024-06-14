@@ -29,10 +29,12 @@ public class TestRDFSInferencing {
 		OWLClassExpression exC = df.getOWLClass("http://example.org/C");
 		// ex:D
 		OWLClassExpression exD = df.getOWLClass("http://example.org/D");
+		// ex:E
+		OWLClassExpression exE = df.getOWLClass("http://example.org/E");
 
 
 		// (child some human) --> (child some male)
-		OWLSubClassOfAxiom ax = om.getOWLDataFactory().getOWLSubClassOfAxiom(exB, exD);
+		OWLSubClassOfAxiom ax = om.getOWLDataFactory().getOWLSubClassOfAxiom(exB, exE);
 
 		logger.info("Axiom:" + ax);
 		if (expert.holds(ax))

@@ -10,6 +10,7 @@ import org.eclipse.rdf4j.repository.RepositoryException;
 import org.eclipse.rdf4j.repository.sail.SailRepository;
 import org.eclipse.rdf4j.rio.RDFFormat;
 import org.eclipse.rdf4j.rio.RDFParseException;
+import org.eclipse.rdf4j.sail.inferencer.fc.ForwardChainingRDFSInferencer;
 import org.eclipse.rdf4j.sail.memory.MemoryStore;
 import org.eclipse.rdf4j.sail.inferencer.fc.SchemaCachingRDFSInferencer;
 
@@ -39,6 +40,7 @@ public class TripleStoreExpert implements ExpertOracle {
 
 		// RDF4J
 		Repository repo = new SailRepository(new SchemaCachingRDFSInferencer(new MemoryStore()));
+		// Repository repo = new SailRepository(new ForwardChainingRDFSInferencer(new MemoryStore()));
 
 		File file = new File(KGfileName);
 		try {
