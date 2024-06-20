@@ -2,6 +2,7 @@ package ontology.learning.sparql;
 
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
+import org.eclipse.rdf4j.model.Value;
 import org.semanticweb.owlapi.model.*;
 import org.semanticweb.owlapi.util.DefaultPrefixManager;
 import org.semanticweb.owlapi.util.StringComparator;
@@ -33,6 +34,14 @@ public class OWL2SPARQL {
     public static String buildQuery(OWLClassExpression c) {
         String queryStr = prefixStr + "SELECT DISTINCT ?1 WHERE {\n" +
                 buildWhereClause(1, c.getNNF(), 0) + "}";
+        return(queryStr);
+    }
+
+    public static String buildQuery(Value v, OWLClassExpression c) {
+        String queryStr = prefixStr + "ASK {\n";
+        queryStr += buildWhereClause(1, c.getNNF(), 0);
+        queryStr += "}\n";
+        queryStr = queryStr.replaceAll("\\?1 ", "<" + v + "> ");
         return(queryStr);
     }
 

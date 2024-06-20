@@ -1,6 +1,7 @@
 package ontology.learning;
 
 import ontology.learning.expert.ExpertOracle;
+import ontology.learning.expert.FormalContextExpert;
 import ontology.learning.expert.TripleStoreExpert;
 import ontology.learning.sampler.RandomSampler;
 import ontology.learning.sampler.RandomSubsumptionSampler;
@@ -61,9 +62,12 @@ public class PACloWikiData {
 		// Measure time
 		Instant start = Instant.now();
 
-		ExpertOracle expert = new TripleStoreExpert(knowledgeGraph);
+
+		// ExpertOracle expert = new TripleStoreExpert(knowledgeGraph);
 
 		Set<OWLClassExpression> baseSet = Utils.readBaseSet(baseSetFile, initialOntology);
+
+		ExpertOracle expert = new FormalContextExpert(baseSet, knowledgeGraph, df);
 
 		SubsumptionSamplingOracle sampler = new RandomSubsumptionSampler(baseSet);
 		// SamplingOracle sampler = new RandomSampler(baseSet);
