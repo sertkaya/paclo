@@ -83,6 +83,9 @@ public class PACOntologyLearningSub {
 		OWLClassExpression queryConjunction = premise.isEmpty() ? df.getOWLThing() : this.df.getOWLObjectIntersectionOf(premise);
 		OWLSubClassOfAxiom ax = df.getOWLSubClassOfAxiom(queryConjunction, conclusion);
 
+		if (this.reasoner.isEntailed(ax))
+			return(true);
+
 		expertQueries++;
 		if (this.expert.holds(ax)) {
 			return true;
