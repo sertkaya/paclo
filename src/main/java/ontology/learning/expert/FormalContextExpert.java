@@ -80,11 +80,11 @@ public class FormalContextExpert implements  ExpertOracle {
             }
         }
 
-        for (Value object : instances) {
+        for (Value instance : instances) {
             Set intent = new HashSet();
             for (Object attribute : fc.getAttributes()) {
                 OWLClassExpression ce = (OWLClassExpression) attribute;
-                String queryStr = OWL2SPARQL.buildQuery(object, ce);
+                String queryStr = OWL2SPARQL.buildQuery(instance, ce);
                 BooleanQuery askQuery = con.prepareBooleanQuery(queryStr);
                 boolean askResult = false;
                 try {
@@ -98,7 +98,7 @@ public class FormalContextExpert implements  ExpertOracle {
                     intent.add(attribute);
                 }
             }
-            this.fc.addObject(object, intent);
+            this.fc.addObject(instance, intent);
         }
         Instant finish = Instant.now();
         long timeElapsed = Duration.between(start, finish).toMillis();
