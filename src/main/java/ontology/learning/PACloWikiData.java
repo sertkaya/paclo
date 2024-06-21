@@ -66,6 +66,8 @@ public class PACloWikiData {
 		// ExpertOracle expert = new TripleStoreExpert(knowledgeGraph);
 
 		Set<OWLClassExpression> baseSet = Utils.readBaseSet(baseSetFile, initialOntology);
+		// baseSet.add(df.getOWLThing());
+		baseSet.add(df.getOWLNothing());
 
 		ExpertOracle expert = new FormalContextExpert(baseSet, knowledgeGraph, df);
 

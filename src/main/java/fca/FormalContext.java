@@ -1,5 +1,8 @@
 package fca;
 
+import javafx.util.Pair;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 import org.eclipse.rdf4j.query.algebra.In;
 
 import java.util.ArrayList;
@@ -8,72 +11,78 @@ import java.util.HashSet;
 import java.util.Set;
 
 public class FormalContext {
-    /*
-    class BitMatrix {
-        public BitSet[] matrix;
-        public BitMatrix(int rows, int columns) {
-            matrix = new BitSet[rows];
-            for (int i = 0; i < rows; ++i)
-                matrix[i] = new BitSet(columns);
-        }
-        public BitSet getRow(int i) {
-            return(matrix[i]);
-        }
 
-        // public boolean addRow(BitSet b) {
-        //     matrix.
-        // }
-    }
-     */
+    protected static final Logger logger = LogManager.getLogger();
 
-    // private BitMatrix matrix;
-    private ArrayList<BitSet> matrix;
-    private int objectCount;
-    private int attributeCount;
+    private ArrayList<Pair<Object, BitSet>> matrix;
     private Object[] attributes;
 
-    public FormalContext(int objects, Set attributes) {
-        this.objectCount = objects;
-        this.attributeCount = attributes.size();
+    public FormalContext(Set attributes) {
         this.attributes = attributes.toArray();
-        // this.matrix = new BitMatrix(objects, attributes);
-        this.matrix = new ArrayList<BitSet>();
+        this.matrix = new ArrayList<Pair<Object, BitSet>>();
     }
 
-    public boolean addObject(BitSet objectIntent) {
-        return(this.matrix.add(objectIntent));
+    public int getAttributeCount() {
+        return(this.attributes.length);
+    }
+
+    public int getObjectCount() {
+        return(this.matrix.size());
+    }
+
+    public boolean addObject(Object o, Set intent) {
+        BitSet b = this.toBitSet(intent);
+        return(this.matrix.add(new Pair(o, b)));
     }
 
     public Object[] getAttributes() {
         return(this.attributes);
     }
 
-    public BitSet upArrow(Set<Integer> A) {
-        BitSet result = new BitSet(this.attributeCount);
-        result.set(0, this.attributeCount - 1, true);
-        /*
-        for (Integer i : A) {
-            result.and(this.matrix.getRow(i));
+    // objects -> attributes
+    private BitSet upArrow(Set<Integer> x) {
+        BitSet result = new BitSet(this.getAttributeCount());
+        result.set(0, this.getAttributeCount() - 1, true);
+        for (Integer i : x) {
+            result.and(this.matrix.get(i).getValue());
         }
-         */
-        for (BitSet objectIntent : this.matrix)
-            result.and(objectIntent);
 
         return(result);
     }
 
-    public Set<Integer> downArrow(BitSet B) {
+    private BitSet toBitSet(Set y) {
+        BitSet b = new BitSet(this.getAttributeCount());
+        // b.set(0, this.getAttributeCount() - 1, false);
+        b.clear();
+        for (int i = 0; i < this.getAttributeCount(); ++i) {
+            if (y.contains(this.attributes[i]))
+                b.set(i);
+        }
+        return(b);
+    }
+
+    // attributes -> objects
+    private Set<Integer> downArrow(BitSet y) {
         Set<Integer> result = new HashSet<Integer>();
-        for (int i = 0; i < this.matrix.size(); ++i) {
-        // for (int i = 0; i < this.objectCount; ++i) {
-            // if (this.matrix.getRow(i).stream().allMatch(B::get))
-            if (this.matrix.get(i).stream().allMatch(B::get))
+        if (y.isEmpty()) {
+            for (int i = 0; i < this.getObjectCount(); ++i)
+                result.add(i);
+            return(result);
+        }
+        for (int i = 0; i < this.getObjectCount(); ++i) {
+            BitSet tmp = (BitSet) this.matrix.get(i).getValue().clone();
+            tmp.and(y);
+            if (tmp.equals(y))
                 result.add(i);
         }
+
         return(result);
     }
 
-    public boolean satisfiesImplication(BitSet premise, BitSet conclusion) {
-        return(downArrow(conclusion).containsAll(downArrow(premise)));
+    public boolean satisfiesImplication(Set premise, Set conclusion) {
+        Set cPrime =  this.downArrow(this.toBitSet(conclusion));
+        Set pPrime =  this.downArrow(this.toBitSet(premise));
+        return(cPrime.containsAll(pPrime));
     }
+
 }

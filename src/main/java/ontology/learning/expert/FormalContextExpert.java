@@ -1,6 +1,7 @@
 package ontology.learning.expert;
 
 import fca.FormalContext;
+import javafx.util.Pair;
 import ontology.learning.sparql.OWL2SPARQL;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
@@ -14,15 +15,12 @@ import org.eclipse.rdf4j.rio.RDFFormat;
 import org.eclipse.rdf4j.rio.RDFParseException;
 import org.eclipse.rdf4j.sail.inferencer.fc.SchemaCachingRDFSInferencer;
 import org.eclipse.rdf4j.sail.memory.MemoryStore;
-import org.semanticweb.owlapi.model.ClassExpressionType;
 import org.semanticweb.owlapi.model.OWLClassExpression;
 import org.semanticweb.owlapi.model.OWLDataFactory;
 import org.semanticweb.owlapi.model.OWLSubClassOfAxiom;
 
 import java.io.File;
 import java.io.IOException;
-import java.net.URI;
-import java.net.URISyntaxException;
 import java.time.Duration;
 import java.time.Instant;
 import java.util.BitSet;
@@ -36,9 +34,8 @@ public class FormalContextExpert implements  ExpertOracle {
     private FormalContext fc;
     private OWLDataFactory dataFactory;
     public  FormalContextExpert(Set<OWLClassExpression> baseSet, String KGfileName, OWLDataFactory dataFactory) {
-        this.fc = new FormalContext(0, baseSet);
+        this.fc = new FormalContext(baseSet);
         this.dataFactory = dataFactory;
-
 
         // RDF4J
         Repository repo = new SailRepository(new SchemaCachingRDFSInferencer(new MemoryStore()));
@@ -82,16 +79,12 @@ public class FormalContextExpert implements  ExpertOracle {
                 }
             }
         }
-        logger.info("size:" + instances.size());
 
-        for (Value v : instances) {
-            logger.info("v: " + v);
-            BitSet objectIntent = new BitSet(baseSet.size());
-            for (int i = 0; i < this.fc.getAttributes().length; ++i) {
-                OWLClassExpression c = (OWLClassExpression) this.fc.getAttributes()[i];
-                logger.info("c: " + c);
-                String queryStr = OWL2SPARQL.buildQuery(v, c);
-                logger.info("queryStr: " + queryStr);
+        for (Value object : instances) {
+            Set intent = new HashSet();
+            for (Object attribute : fc.getAttributes()) {
+                OWLClassExpression ce = (OWLClassExpression) attribute;
+                String queryStr = OWL2SPARQL.buildQuery(object, ce);
                 BooleanQuery askQuery = con.prepareBooleanQuery(queryStr);
                 boolean askResult = false;
                 try {
@@ -102,29 +95,19 @@ public class FormalContextExpert implements  ExpertOracle {
                     System.exit(-1);
                 }
                 if (askResult) {
-                    objectIntent.set(i);
+                    intent.add(attribute);
                 }
             }
-            this.fc.addObject(objectIntent);
+            this.fc.addObject(object, intent);
         }
         Instant finish = Instant.now();
         long timeElapsed = Duration.between(start, finish).toMillis();
-        logger.info("FormalContextExpert time:" + timeElapsed);
     }
     @Override
     public boolean holds(OWLSubClassOfAxiom ax) {
-        BitSet premise = new BitSet(this.fc.getAttributes().length);
-        premise.clear();
-        BitSet conclusion = new BitSet(this.fc.getAttributes().length);
-        conclusion.clear();
         Set<OWLClassExpression> p = ax.getSubClass().asConjunctSet();
         Set<OWLClassExpression> c = ax.getSuperClass().asConjunctSet();
-        for (int i = 0; i < this.fc.getAttributes().length; ++i) {
-            if (p.contains((OWLClassExpression) this.fc.getAttributes()[i]))
-                premise.set(i);
-            if (c.contains((OWLClassExpression) this.fc.getAttributes()[i]))
-                conclusion.set(i);
-        }
-        return(this.fc.satisfiesImplication(premise, conclusion));
+
+        return(this.fc.satisfiesImplication(p, c));
     }
 }
