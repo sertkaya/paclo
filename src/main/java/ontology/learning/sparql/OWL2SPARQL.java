@@ -4,14 +4,8 @@ import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.eclipse.rdf4j.model.Value;
 import org.semanticweb.owlapi.model.*;
-import org.semanticweb.owlapi.util.DefaultPrefixManager;
-import org.semanticweb.owlapi.util.StringComparator;
 
-import javax.annotation.Nullable;
-import java.util.HashMap;
-import java.util.Map;
 import java.util.Set;
-import java.util.stream.Stream;
 
 public class OWL2SPARQL {
 

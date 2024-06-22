@@ -3,7 +3,6 @@ package fca;
 import javafx.util.Pair;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
-import org.eclipse.rdf4j.query.algebra.In;
 
 import java.util.ArrayList;
 import java.util.BitSet;

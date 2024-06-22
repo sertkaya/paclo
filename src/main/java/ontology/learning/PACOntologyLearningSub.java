@@ -1,7 +1,5 @@
 package ontology.learning;
 
-import java.time.Duration;
-import java.time.Instant;
 import java.util.Set;
 import java.util.ArrayList;
 import java.util.HashSet;
@@ -156,12 +154,6 @@ public class PACOntologyLearningSub {
 		expertQueries = 0;
 		ImplicationList imps = new ImplicationList(baseSet);
 		Set<OWLClassExpression> counterExample;
-
-		// Hashtable for storing implication -> GCI. 
-		// Later used to find out the GCI to remove from the ontology
-		// Key: implicaton 
-		// Value: corresponding GCI
-		// Hashtable<Implication, OWLSubClassOfAxiom> implicationAxiomHash = new Hashtable<>();
 
 		wrongImplicationHash = new Hashtable<>();
 		for (OWLClassExpression c : baseSet) {
