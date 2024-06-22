@@ -1,7 +1,6 @@
 package ontology.learning.expert;
 
 import fca.FormalContext;
-import javafx.util.Pair;
 import ontology.learning.sparql.OWL2SPARQL;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
@@ -23,7 +22,6 @@ import java.io.File;
 import java.io.IOException;
 import java.time.Duration;
 import java.time.Instant;
-import java.util.BitSet;
 import java.util.HashSet;
 import java.util.Set;
 
@@ -66,6 +64,7 @@ public class FormalContextExpert implements  ExpertOracle {
 
         Instant start = Instant.now();
 
+        // Build the set of instances (objects of the formal context)
         Set<Value> instances = new HashSet<>();
         for (OWLClassExpression e : baseSet) {
             String queryString = OWL2SPARQL.buildQuery(e);
@@ -79,7 +78,12 @@ public class FormalContextExpert implements  ExpertOracle {
                 }
             }
         }
+        Instant finish = Instant.now();
+        long timeElapsed = Duration.between(start, finish).toMillis();
+        logger.info("Fetching instances: " + timeElapsed + " ms");
+        start = Instant.now();
 
+        // Prepare object intents
         for (Value instance : instances) {
             Set intent = new HashSet();
             for (Object attribute : fc.getAttributes()) {
@@ -100,8 +104,9 @@ public class FormalContextExpert implements  ExpertOracle {
             }
             this.fc.addObject(instance, intent);
         }
-        Instant finish = Instant.now();
-        long timeElapsed = Duration.between(start, finish).toMillis();
+        finish = Instant.now();
+        timeElapsed = Duration.between(start, finish).toMillis();
+        logger.info("Preparing formal context: " + timeElapsed + " ms");
     }
     @Override
     public boolean holds(OWLSubClassOfAxiom ax) {
