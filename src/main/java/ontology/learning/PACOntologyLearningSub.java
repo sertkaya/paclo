@@ -37,8 +37,8 @@ public class PACOntologyLearningSub {
 	private ExpertOracle expert;
 	private SubsumptionSamplingOracle sampler;
 
-	private int expertQueries;
-	private int samplerQueries;
+	private int expertQueries = 0;
+	private int samplerQueries = 0;
 
 	private Logger logger = LogManager.getLogger("PACOntologyLearningSub");
 
@@ -83,8 +83,9 @@ public class PACOntologyLearningSub {
 		OWLClassExpression queryConjunction = premise.isEmpty() ? df.getOWLThing() : this.df.getOWLObjectIntersectionOf(premise);
 		OWLSubClassOfAxiom ax = df.getOWLSubClassOfAxiom(queryConjunction, conclusion);
 
-		if (this.reasoner.isEntailed(ax))
-			return(true);
+		if (this.reasoner.isEntailed(ax)) {
+			return (true);
+		}
 
 		expertQueries++;
 		if (this.expert.holds(ax)) {
@@ -105,11 +106,11 @@ public class PACOntologyLearningSub {
             Set<OWLClassExpression> premise = query.getKey();
 			Set<OWLClassExpression> closure = imps.closure(premise);
             if (!closure.contains(df.getOWLNothing()) && !closure.contains(query.getValue()) && isImplicationValid(premise, query.getValue())) {
-                logger.info("Samples at this iteration: " + samples);
+                // logger.info("Samples at this iteration: " + samples);
                 return closure;
 			}
 		}
-		logger.info("Generated " + samples + " samples");
+		// logger.info("Generated " + samples + " samples");
 		return null;
 	}
 	
@@ -172,9 +173,9 @@ public class PACOntologyLearningSub {
 		boolean found = false;
 
 		while ((counterExample = getCounterExample(imps, callsToSamplingOracle(epsilon, delta, iteration))) != null) { 
-			logger.info("iteration:" + iteration);
-			logger.info("expert queries:" + this.expertQueries);
-			logger.info("implications:" + imps.size());
+			// logger.info("iteration:" + iteration);
+			// logger.info("expert queries:" + this.expertQueries);
+			// logger.info("implications:" + imps.size());
 			found = false;
 			Implication imp = null;
 			for (int i = 0; i < imps.size(); i++) {
@@ -237,7 +238,7 @@ public class PACOntologyLearningSub {
 
 	    logger.info("Total iterations: " + (iteration - 1));
 		logger.info("Expert queries: " + this.expertQueries);
-		logger.info("Samples generated: " + this.samplerQueries);
+		logger.info("Sampler queries: " + this.samplerQueries);
 		logger.info("Axioms added: " + axiomCount);
 
 		try {

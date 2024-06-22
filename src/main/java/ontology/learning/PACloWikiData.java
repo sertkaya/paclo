@@ -1,6 +1,7 @@
 package ontology.learning;
 
 import ontology.learning.expert.ExpertOracle;
+import ontology.learning.expert.FormalContextExpert;
 import ontology.learning.expert.TripleStoreExpert;
 import ontology.learning.sampler.RandomSampler;
 import ontology.learning.sampler.RandomSubsumptionSampler;
@@ -25,6 +26,9 @@ public class PACloWikiData {
 	private static final Logger logger = LogManager.getLogger(PACloWikiData.class);
 
 	public static void main(String[] args) {
+
+		// Measure time
+		Instant start = Instant.now();
 
 		if (args.length != 6) {
 			logger.fatal("Usage: epsilon delta initialOntology knowledgeGraph baseSetFile outputOntology");
@@ -58,12 +62,13 @@ public class PACloWikiData {
 		OWLReasoner reasoner = rf.createReasoner(initialOntology);
 		reasoner.precomputeInferences(InferenceType.CLASS_HIERARCHY);
 
-		// Measure time
-		Instant start = Instant.now();
-
-		ExpertOracle expert = new TripleStoreExpert(knowledgeGraph);
+		// ExpertOracle expert = new TripleStoreExpert(knowledgeGraph);
 
 		Set<OWLClassExpression> baseSet = Utils.readBaseSet(baseSetFile, initialOntology);
+		// baseSet.add(df.getOWLThing());
+		baseSet.add(df.getOWLNothing());
+
+		ExpertOracle expert = new FormalContextExpert(baseSet, knowledgeGraph, df);
 
 		SubsumptionSamplingOracle sampler = new RandomSubsumptionSampler(baseSet);
 		// SamplingOracle sampler = new RandomSampler(baseSet);
@@ -74,6 +79,6 @@ public class PACloWikiData {
 
 		Instant finish = Instant.now();
 		long timeElapsed = Duration.between(start, finish).toMillis();
-		logger.info("Execution time: " + timeElapsed / 1000);
+		logger.info("Execution time: " + timeElapsed + " ms");
 	}
 }
