@@ -1,35 +1,26 @@
 package ontology.learning;
 
-import java.util.Set;
-import java.util.ArrayList;
-import java.util.HashSet;
-import java.util.Hashtable;
-
+import javafx.util.Pair;
+import ontology.learning.sampler.SubsumptionSamplingOracle;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.semanticweb.owlapi.formats.OWLXMLDocumentFormat;
-import org.semanticweb.owlapi.model.IRI;
-import org.semanticweb.owlapi.model.OWLClassExpression;
-import org.semanticweb.owlapi.model.OWLDataFactory;
-import org.semanticweb.owlapi.model.OWLOntology;
-import org.semanticweb.owlapi.model.OWLOntologyCreationException;
-import org.semanticweb.owlapi.model.OWLOntologyManager;
-import org.semanticweb.owlapi.model.OWLOntologyStorageException;
-import org.semanticweb.owlapi.model.OWLSubClassOfAxiom;
+import org.semanticweb.owlapi.model.*;
 import org.semanticweb.owlapi.reasoner.OWLReasoner;
 
-import javafx.util.Pair;
-import ontology.learning.expert.ExpertOracle;
-import ontology.learning.sampler.SubsumptionSamplingOracle;
+import java.util.ArrayList;
+import java.util.HashSet;
+import java.util.Hashtable;
+import java.util.Set;
 
 
 // with subsumption queries
-public class PACOntologyLearningSub {
-	
-	private OWLOntology ontology;
+public class LearningFrameworkSubsumption {
+
+	private OWLOntology initialOntology;
 	private OWLOntologyManager om;
 	private OWLDataFactory df;
-	private OWLReasoner reasoner;
+	private OWLReasoner initialReasoner;
 
 	private Set<OWLClassExpression> baseSet;
 	private ExpertOracle expert;
@@ -38,36 +29,39 @@ public class PACOntologyLearningSub {
 	private int expertQueries = 0;
 	private int samplerQueries = 0;
 
-	private Logger logger = LogManager.getLogger("PACOntologyLearningSub");
+	private Logger logger = LogManager.getLogger("LearningFrameworkSubsumption");
 
 	private Hashtable<OWLClassExpression, ArrayList<Set<OWLClassExpression>>> wrongImplicationHash;
 
 	/**
-	 * @param ontology: The initial ontology
+	 * @param initialOntology: The initial ontology
 	 * @param baseSet: Set with the concept descriptions
 	 * @param expert: The domain expert
 	 * @param sampler: Sampling oracle
 	 * @param om: The ontology manager
-	 * @param reasoner
+	 * @param initialReasoner
 	 */
-	public PACOntologyLearningSub(OWLOntology ontology,
-                                    Set<OWLClassExpression> baseSet,
-                                    ExpertOracle expert, 
-                                    SubsumptionSamplingOracle sampler,
-								  	OWLOntologyManager om,
-								  	OWLReasoner reasoner) {
+	public LearningFrameworkSubsumption(OWLOntology initialOntology,
+										Set<OWLClassExpression> baseSet,
+										ExpertOracle expert,
+										SubsumptionSamplingOracle sampler,
+										OWLOntologyManager om,
+										OWLReasoner initialReasoner) {
+
 		this.baseSet = baseSet;
-		this.ontology = ontology;
+		this.initialOntology = initialOntology;
 
 		this.om = om;
 		this.df = om.getOWLDataFactory();
-		this.reasoner = reasoner;
+		this.initialReasoner = initialReasoner;
 
 		this.expert = expert;
 		this.sampler = sampler;
 		
 		this.expertQueries = 0;
 		this.wrongImplicationHash = null;
+
+
 	}
 
 	private boolean isImplicationValid(Set<OWLClassExpression> premise, OWLClassExpression conclusion) {
@@ -81,7 +75,7 @@ public class PACOntologyLearningSub {
 		OWLClassExpression queryConjunction = premise.isEmpty() ? df.getOWLThing() : this.df.getOWLObjectIntersectionOf(premise);
 		OWLSubClassOfAxiom ax = df.getOWLSubClassOfAxiom(queryConjunction, conclusion);
 
-		if (this.reasoner.isEntailed(ax)) {
+		if (this.initialReasoner.isEntailed(ax)) {
 			return (true);
 		}
 
@@ -93,8 +87,24 @@ public class PACOntologyLearningSub {
 		wrongImplicationHash.get(conclusion).add(premise);
 		return false;
 	}
-	
-	public Set<OWLClassExpression> getCounterExample(ImplicationList imps, int k) {
+
+	private Set<OWLClassExpression> implicationClosure(ArrayList<Implication> imps, Set<OWLClassExpression> s) {
+		Set<OWLClassExpression> closure = new HashSet<OWLClassExpression>(s);
+		boolean added;
+
+		do {
+			added = false;
+			for (Implication imp : imps) {
+				if (closure.containsAll(imp.getPremise()))
+					if (closure.addAll(imp.getConclusion()))
+						added = true;
+			}
+		}
+		while (added);
+		return(closure);
+	}
+
+	private Set<OWLClassExpression> getCounterExample(ArrayList<Implication> imps, int k) {
 		int samples = 0;
 		for (int i = 0; i < k; ++i) {
 			Pair<Set<OWLClassExpression>, OWLClassExpression>  query = this.sampler.sample();
@@ -102,7 +112,7 @@ public class PACOntologyLearningSub {
 			samples++;
 			samplerQueries++;
             Set<OWLClassExpression> premise = query.getKey();
-			Set<OWLClassExpression> closure = imps.closure(premise);
+			Set<OWLClassExpression> closure = implicationClosure(imps, premise);
             if (!closure.contains(df.getOWLNothing()) && !closure.contains(query.getValue()) && isImplicationValid(premise, query.getValue())) {
                 // logger.info("Samples at this iteration: " + samples);
                 return closure;
@@ -115,7 +125,7 @@ public class PACOntologyLearningSub {
 	/**
 	 * Given epsilon, delta, and iteration i returns the number of calls to the sampling oracle.
 	 */
-	public int callsToSamplingOracle(double epsilon, double delta, int i) {
+	private int callsToSamplingOracle(double epsilon, double delta, int i) {
 		return((int) Math.ceil(Math.log(delta/(i*(i + 1))) / Math.log(1 - epsilon)));
 	}
 	
@@ -152,7 +162,7 @@ public class PACOntologyLearningSub {
 	 */
 	public OWLOntology upperApproximation(double epsilon, double delta, IRI resultOntologyIRI) {
 		expertQueries = 0;
-		ImplicationList imps = new ImplicationList(baseSet);
+		ArrayList<Implication> imps = new ArrayList<Implication>();
 		Set<OWLClassExpression> counterExample;
 
 		wrongImplicationHash = new Hashtable<>();
@@ -210,7 +220,7 @@ public class PACOntologyLearningSub {
 		OWLOntology resultOntology = null;
 		try {
 			resultOntology = om.createOntology(resultOntologyIRI);
-			resultOntology.add(ontology.getAxioms());
+			resultOntology.add(initialOntology.getAxioms());
 		} catch (OWLOntologyCreationException e) {
 			logger.fatal("Could not create the result ontology");
             System.exit(-1);
@@ -219,7 +229,7 @@ public class PACOntologyLearningSub {
 		int axiomCount = 0;
         for (int i = 0; i < imps.size(); ++i) {
 			OWLSubClassOfAxiom ax = imps.get(i).toGCI();
-			if (this.reasoner.isEntailed(ax)) {
+			if (this.initialReasoner.isEntailed(ax)) {
 				logger.debug("Did not add axiom: " + ax);
 			} else {
 				resultOntology.add(ax);

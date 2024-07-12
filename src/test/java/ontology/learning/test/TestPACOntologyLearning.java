@@ -24,9 +24,8 @@ import org.semanticweb.owlapi.model.OWLOntologyCreationException;
 import org.semanticweb.owlapi.model.OWLOntologyManager;
 import org.semanticweb.owlapi.util.mansyntax.ManchesterOWLSyntaxParser;
 
-import ontology.learning.PACOntologyLearning;
-import ontology.learning.expert.ExpertOracle;
-import ontology.learning.expert.ReasonerExpert;
+import ontology.learning.ExpertOracle;
+import ontology.learning.oracle.ReasonerExpert;
 import ontology.learning.sampler.RandomSampler;
 import ontology.learning.sampler.SamplingOracle;
 
@@ -73,7 +72,7 @@ public class TestPACOntologyLearning {
 		File myOntology = new File("/home/bs/research/dev/pacco/src/test/resources/myOntology.owx");
 		IRI myOntologyIRI = IRI.create(myOntology);
 
-		// PACOntologyLearning pacCompletion = new PACOntologyLearning(myOntologyIRI, baseSet, expert, sampler);
+		// LearningFrameworkCompletion pacCompletion = new LearningFrameworkCompletion(myOntologyIRI, baseSet, expert, sampler);
 		// pacCompletion.upperApproximation(0.8, 0.5);
 		// System.out.println(pacCompletion.callsToSamplingOracle(0.5, 0.5, 3));
 

@@ -9,7 +9,7 @@ import org.apache.logging.log4j.Logger;
 import org.semanticweb.owlapi.apibinding.OWLManager;
 import org.semanticweb.owlapi.model.*;
 
-import ontology.learning.expert.TripleStoreExpert;
+import ontology.learning.graph.TripleStoreExpert;
 
 public class TestOWL2SPARQL {
 	protected static final Logger logger = LogManager.getLogger();

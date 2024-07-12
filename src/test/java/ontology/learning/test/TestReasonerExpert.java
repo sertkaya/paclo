@@ -4,8 +4,6 @@ import java.io.File;
 import java.util.HashSet;
 import java.util.Set;
 
-import ontology.learning.expert.TripleStoreExpert;
-import ontology.learning.sparql.OWL2SPARQL;
 import ontology.learning.utils.Utils;
 import org.semanticweb.owlapi.apibinding.OWLManager;
 import org.semanticweb.owlapi.model.IRI;
@@ -14,15 +12,8 @@ import org.semanticweb.owlapi.model.OWLDataFactory;
 import org.semanticweb.owlapi.model.OWLObjectProperty;
 import org.semanticweb.owlapi.model.OWLOntologyManager;
 import org.semanticweb.owlapi.model.OWLSubClassOfAxiom;
-import org.semanticweb.owlapi.util.IRIComparator;
 
-import ontology.learning.Implication;
-import ontology.learning.ImplicationList;
-import ontology.learning.PACOntologyLearning;
-import ontology.learning.expert.ExpertOracle;
-import ontology.learning.expert.ReasonerExpert;
-import ontology.learning.sampler.RandomSampler;
-import ontology.learning.sampler.SamplingOracle;
+import ontology.learning.oracle.ReasonerExpert;
 
 public class TestReasonerExpert {
 

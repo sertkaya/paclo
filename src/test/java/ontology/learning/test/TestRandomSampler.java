@@ -9,8 +9,6 @@ import org.semanticweb.owlapi.model.OWLDataFactory;
 import org.semanticweb.owlapi.model.OWLObjectProperty;
 import org.semanticweb.owlapi.model.OWLOntologyManager;
 
-import ontology.learning.Implication;
-import ontology.learning.ImplicationList;
 import ontology.learning.sampler.RandomSampler;
 import ontology.learning.sampler.SamplingOracle;
 

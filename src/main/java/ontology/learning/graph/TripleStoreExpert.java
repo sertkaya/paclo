@@ -1,5 +1,6 @@
-package ontology.learning.expert;
+package ontology.learning.graph;
 
+import ontology.learning.ExpertOracle;
 import ontology.learning.sparql.OWL2SPARQL;
 
 import org.eclipse.rdf4j.model.Value;

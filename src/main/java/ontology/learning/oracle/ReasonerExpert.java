@@ -1,5 +1,6 @@
-package ontology.learning.expert;
+package ontology.learning.oracle;
 
+import ontology.learning.ExpertOracle;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.semanticweb.owlapi.model.OWLOntologyManager;
@@ -16,6 +17,9 @@ import ontology.learning.Implication;
 
 import org.semanticweb.owlapi.model.OWLOntologyCreationException;
 
+import java.time.Duration;
+import java.time.Instant;
+
 /**
  * An expert implementation that answers questions w.r.t. an expert ontology.
  */
@@ -27,6 +31,8 @@ public class ReasonerExpert implements ExpertOracle {
 	private OWLReasoner reasoner;
 	
 	public ReasonerExpert(IRI iri) {
+
+		Instant start = Instant.now();
 		OWLOntologyManager om = OWLManager.createOWLOntologyManager();
 		try {
 			this.ontology = om.loadOntology(iri);
@@ -35,9 +41,17 @@ public class ReasonerExpert implements ExpertOracle {
 			logger.fatal("Error loading ontology");
 			System.exit(-1);
 		}
+		Instant finish = Instant.now();
+		long timeElapsed = Duration.between(start, finish).toMillis();
+		logger.info("Loaded ontology: " + timeElapsed + " ms");
+
 		OWLReasonerFactory rf = new ReasonerFactory();
 		this.reasoner = rf.createReasoner(ontology);
+		start = Instant.now();
 		this.reasoner.precomputeInferences(InferenceType.CLASS_HIERARCHY);
+		finish = Instant.now();
+		timeElapsed = Duration.between(start, finish).toMillis();
+		logger.info("Classified ontology: " + timeElapsed + " ms");
 	}
 
 	public boolean holds(Implication imp) {

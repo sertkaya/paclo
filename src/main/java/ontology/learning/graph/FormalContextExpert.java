@@ -1,6 +1,7 @@
-package ontology.learning.expert;
+package ontology.learning.graph;
 
 import fca.FormalContext;
+import ontology.learning.ExpertOracle;
 import ontology.learning.sparql.OWL2SPARQL;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
@@ -25,7 +26,7 @@ import java.time.Instant;
 import java.util.HashSet;
 import java.util.Set;
 
-public class FormalContextExpert implements  ExpertOracle {
+public class FormalContextExpert implements ExpertOracle {
     protected static final Logger logger = LogManager.getLogger();
 
 

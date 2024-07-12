@@ -6,7 +6,6 @@ import java.util.HashSet;
 import java.util.Hashtable;
 
 import org.semanticweb.HermiT.ReasonerFactory;
-import org.semanticweb.owlapi.apibinding.OWLManager;
 import org.semanticweb.owlapi.formats.OWLXMLDocumentFormat;
 import org.semanticweb.owlapi.model.IRI;
 import org.semanticweb.owlapi.model.OWLClassExpression;
@@ -20,14 +19,13 @@ import org.semanticweb.owlapi.reasoner.InferenceType;
 import org.semanticweb.owlapi.reasoner.OWLReasoner;
 import org.semanticweb.owlapi.reasoner.OWLReasonerFactory;
 
-import ontology.learning.expert.ExpertOracle;
 import ontology.learning.sampler.SamplingOracle;
 
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
 
-public class PACOntologyLearning {
+public class LearningFrameworkCompletion {
 	
 	private OWLOntology ontology;
 	private OWLOntology auxiliaryOntology;
@@ -44,7 +42,7 @@ public class PACOntologyLearning {
 	private int expertQueries;
 	private int samplerQueries;
 
-	private Logger logger = LogManager.getLogger();
+	private Logger logger = LogManager.getLogger("LearningFrameworkCompletion");
 
 	private Hashtable<OWLClassExpression, ArrayList<Set<OWLClassExpression>>> wrongImplicationHash;
 
@@ -54,12 +52,12 @@ public class PACOntologyLearning {
 	 * @param expert: The domain expert 
 	 * @param sampler
 	 */
-	public PACOntologyLearning(OWLOntology ontology,
-							   Set<OWLClassExpression> baseSet,
-							   ExpertOracle expert,
-							   SamplingOracle sampler,
-							   OWLOntologyManager om,
-							   OWLReasoner reasoner) {
+	public LearningFrameworkCompletion(OWLOntology ontology,
+									   Set<OWLClassExpression> baseSet,
+									   ExpertOracle expert,
+									   SamplingOracle sampler,
+									   OWLOntologyManager om,
+									   OWLReasoner reasoner) {
 		this.baseSet = new HashSet<OWLClassExpression>(baseSet);
 		this.ontology = ontology;
 
@@ -114,14 +112,30 @@ public class PACOntologyLearning {
 		wrongImplicationHash.get(conclusion).add(premise);
 		return false;
 	}
-	
-	public Set<OWLClassExpression> getCounterExample(ImplicationList imps, int k) {
+
+	private Set<OWLClassExpression> implicationClosure(ArrayList<Implication> imps, Set<OWLClassExpression> s) {
+		Set<OWLClassExpression> closure = new HashSet<OWLClassExpression>(s);
+		boolean added;
+
+		do {
+			added = false;
+			for (Implication imp : imps) {
+				if (closure.containsAll(imp.getPremise()))
+					if (closure.addAll(imp.getConclusion()))
+						added = true;
+			}
+		}
+		while (added);
+		return(closure);
+	}
+
+	public Set<OWLClassExpression> getCounterExample(ArrayList<Implication> imps, int k) {
 		int samples = 0;
 		for (int i = 0; i < k; ++i) {
 			Set<OWLClassExpression> query = this.sampler.sample();
 			samples++;
 			samplerQueries++;
-			Set<OWLClassExpression> closure = imps.closure(query);
+			Set<OWLClassExpression> closure = implicationClosure(imps, query);
 		
 			for (OWLClassExpression c : this.baseSet) {
 				if (!closure.contains(df.getOWLNothing()) && !closure.contains(c) && isImplicationValid(closure, c)) {
@@ -184,7 +198,7 @@ public class PACOntologyLearning {
 	 */
 	public OWLOntology upperApproximation(double epsilon, double delta, IRI resultOntologyIRI) {
 		expertQueries = 0;
-		ImplicationList imps = new ImplicationList(baseSet);
+		ArrayList<Implication> imps = new ArrayList<Implication>();
 		Set<OWLClassExpression> counterExample;
 
 		// Hashtable for storing implication -> GCI. 

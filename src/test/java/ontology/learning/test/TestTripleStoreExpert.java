@@ -1,16 +1,10 @@
 package ontology.learning.test;
 
-import ontology.learning.expert.TripleStoreExpert;
-import ontology.learning.sparql.OWL2SPARQL;
-import ontology.learning.utils.Utils;
+import ontology.learning.graph.TripleStoreExpert;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.semanticweb.owlapi.apibinding.OWLManager;
 import org.semanticweb.owlapi.model.*;
-
-import java.io.File;
-import java.util.HashSet;
-import java.util.Set;
 
 public class TestTripleStoreExpert {
 	protected static final Logger logger = LogManager.getLogger();

@@ -1,6 +1,6 @@
 package ontology.learning.test;
 
-import ontology.learning.expert.TripleStoreExpert;
+import ontology.learning.graph.TripleStoreExpert;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.semanticweb.owlapi.apibinding.OWLManager;

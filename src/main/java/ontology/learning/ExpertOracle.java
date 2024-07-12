@@ -1,4 +1,4 @@
-package ontology.learning.expert;
+package ontology.learning;
 
 import org.semanticweb.owlapi.model.OWLClassExpression;
 import org.semanticweb.owlapi.model.OWLOntology;
