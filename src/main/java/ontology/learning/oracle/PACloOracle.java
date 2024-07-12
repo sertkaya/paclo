@@ -41,34 +41,21 @@ public class PACloOracle {
         IRI resultOntologyIRI = IRI.create(resultOntologyFile);
         IRI expertOntologyIRI = IRI.create(expertOntologyFile);
 
-        OWLOntologyManager om = OWLManager.createOWLOntologyManager();
-        OWLReasonerFactory rf = new ReasonerFactory();
-
-        OWLOntology initialOntology = null;
-        try {
-            initialOntology = om.loadOntology(initialOntologyIRI);
-            logger.debug("Successfully loaded ontology");
-        }
-        catch (OWLOntologyCreationException e) {
-            logger.fatal("Error loading ontology");
-            System.exit(-1);
-        }
-
-        OWLReasoner reasoner = rf.createReasoner(initialOntology);
-        reasoner.precomputeInferences(InferenceType.CLASS_HIERARCHY);
-
-        Set<OWLClassExpression> baseSet = Utils.readBaseSet(baseSetFile, initialOntology);
+        Set<OWLClassExpression> baseSet = Utils.readBaseSet(baseSetFile, initialOntologyIRI);
 
         ExpertOracle expert = new ReasonerExpert(expertOntologyIRI);
         SubsumptionSamplingOracle sampler = new RandomSubsumptionSampler(baseSet);
 
         Instant start = Instant.now();
-        LearningFrameworkSubsumption framework = new LearningFrameworkSubsumption(initialOntology, baseSet, expert, sampler, om, reasoner);
+        LearningFrameworkSubsumption framework = new LearningFrameworkSubsumption(initialOntologyIRI, baseSet, expert, sampler);
         OWLOntology resultOntology = framework.upperApproximation(epsilon, delta, resultOntologyIRI);
 
         Instant finish = Instant.now();
         long timeElapsed = Duration.between(start, finish).toMillis();
         logger.info("Execution time: " + timeElapsed + " ms");
+
+        Evaluation e = new Evaluation();
+        e.evaluate(resultOntology, ((ReasonerExpert) expert).getReasoner(), baseSet);
     }
 
 

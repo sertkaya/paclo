@@ -4,9 +4,13 @@ import javafx.util.Pair;
 import ontology.learning.sampler.SubsumptionSamplingOracle;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
+import org.semanticweb.HermiT.ReasonerFactory;
+import org.semanticweb.owlapi.apibinding.OWLManager;
 import org.semanticweb.owlapi.formats.OWLXMLDocumentFormat;
 import org.semanticweb.owlapi.model.*;
+import org.semanticweb.owlapi.reasoner.InferenceType;
 import org.semanticweb.owlapi.reasoner.OWLReasoner;
+import org.semanticweb.owlapi.reasoner.OWLReasonerFactory;
 
 import java.util.ArrayList;
 import java.util.HashSet;
@@ -20,6 +24,7 @@ public class LearningFrameworkSubsumption {
 	private OWLOntology initialOntology;
 	private OWLOntologyManager om;
 	private OWLDataFactory df;
+	private OWLReasonerFactory rf;
 	private OWLReasoner initialReasoner;
 
 	private Set<OWLClassExpression> baseSet;
@@ -31,42 +36,49 @@ public class LearningFrameworkSubsumption {
 
 	private Logger logger = LogManager.getLogger("LearningFrameworkSubsumption");
 
-	private Hashtable<OWLClassExpression, ArrayList<Set<OWLClassExpression>>> wrongImplicationHash;
+	private Hashtable<OWLClassExpression, ArrayList<Set<OWLClassExpression>>> invalidImplications;
 
 	/**
-	 * @param initialOntology: The initial ontology
+	 * @param initialOntologyIRI
 	 * @param baseSet: Set with the concept descriptions
 	 * @param expert: The domain expert
 	 * @param sampler: Sampling oracle
-	 * @param om: The ontology manager
-	 * @param initialReasoner
 	 */
-	public LearningFrameworkSubsumption(OWLOntology initialOntology,
+	public LearningFrameworkSubsumption(IRI initialOntologyIRI,
 										Set<OWLClassExpression> baseSet,
 										ExpertOracle expert,
-										SubsumptionSamplingOracle sampler,
-										OWLOntologyManager om,
-										OWLReasoner initialReasoner) {
+										SubsumptionSamplingOracle sampler) {
 
 		this.baseSet = baseSet;
-		this.initialOntology = initialOntology;
 
-		this.om = om;
+		this.om = OWLManager.createOWLOntologyManager();
 		this.df = om.getOWLDataFactory();
-		this.initialReasoner = initialReasoner;
+		this.rf = new ReasonerFactory();
+
+		try {
+			this.initialOntology = om.loadOntology(initialOntologyIRI);
+			logger.debug("Successfully loaded ontology");
+		}
+		catch (OWLOntologyCreationException e) {
+			logger.fatal("Error loading ontology");
+			System.exit(-1);
+		}
+
+		this.initialReasoner = this.rf.createReasoner(initialOntology);
+		this.initialReasoner.precomputeInferences(InferenceType.CLASS_HIERARCHY);
 
 		this.expert = expert;
 		this.sampler = sampler;
 		
 		this.expertQueries = 0;
-		this.wrongImplicationHash = null;
+		this.invalidImplications = null;
 
 
 	}
 
 	private boolean isImplicationValid(Set<OWLClassExpression> premise, OWLClassExpression conclusion) {
 
-		for (Set<OWLClassExpression> wrongPremise : wrongImplicationHash.get(conclusion)) {
+		for (Set<OWLClassExpression> wrongPremise : invalidImplications.get(conclusion)) {
 			if (wrongPremise.containsAll(premise)) {
 				return false;
 			}
@@ -75,16 +87,19 @@ public class LearningFrameworkSubsumption {
 		OWLClassExpression queryConjunction = premise.isEmpty() ? df.getOWLThing() : this.df.getOWLObjectIntersectionOf(premise);
 		OWLSubClassOfAxiom ax = df.getOWLSubClassOfAxiom(queryConjunction, conclusion);
 
+		// Check if it follows from the initial ontology.
 		if (this.initialReasoner.isEntailed(ax)) {
 			return (true);
 		}
 
+		// Check if it holds in expert's view.
 		expertQueries++;
 		if (this.expert.holds(ax)) {
 			return true;
 		}
 
-		wrongImplicationHash.get(conclusion).add(premise);
+		// Otherwise the implication is invalid.
+		invalidImplications.get(conclusion).add(premise);
 		return false;
 	}
 
@@ -165,11 +180,11 @@ public class LearningFrameworkSubsumption {
 		ArrayList<Implication> imps = new ArrayList<Implication>();
 		Set<OWLClassExpression> counterExample;
 
-		wrongImplicationHash = new Hashtable<>();
+		invalidImplications = new Hashtable<>();
 		for (OWLClassExpression c : baseSet) {
-			wrongImplicationHash.put(c, new ArrayList<Set<OWLClassExpression>>());
+			invalidImplications.put(c, new ArrayList<Set<OWLClassExpression>>());
 		}
-		wrongImplicationHash.put(df.getOWLNothing(), new ArrayList<Set<OWLClassExpression>>());
+		invalidImplications.put(df.getOWLNothing(), new ArrayList<Set<OWLClassExpression>>());
 
 		int iteration = 1;
 		boolean found = false;
@@ -249,6 +264,8 @@ public class LearningFrameworkSubsumption {
 			logger.fatal("Error while saving result ontology");
 			e.printStackTrace();
 		}
+
+		initialReasoner.dispose();
 		return(resultOntology);
 	}
 }

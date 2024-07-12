@@ -2,10 +2,12 @@ package ontology.learning.utils;
 
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
+import org.semanticweb.HermiT.ReasonerFactory;
 import org.semanticweb.owlapi.apibinding.OWLManager;
 import org.semanticweb.owlapi.expression.OWLEntityChecker;
 import org.semanticweb.owlapi.manchestersyntax.parser.ManchesterOWLSyntaxParserImpl;
 import org.semanticweb.owlapi.model.*;
+import org.semanticweb.owlapi.reasoner.OWLReasonerFactory;
 import org.semanticweb.owlapi.util.mansyntax.ManchesterOWLSyntaxParser;
 
 import java.io.*;
@@ -18,16 +20,27 @@ public class Utils {
 
     protected static final Logger logger = LogManager.getLogger();
 
-    public static Set<OWLClassExpression> readBaseSet(File f, OWLOntology o) {
-        Set<OWLClassExpression> baseSet = new HashSet<OWLClassExpression>();
+    public static Set<OWLClassExpression> readBaseSet(File f, IRI initialOntologyIRI) {
 
         OWLOntologyManager om = OWLManager.createOWLOntologyManager();
         OWLDataFactory df = om.getOWLDataFactory();
+
+        OWLOntology initialOntology = null;
+        try {
+            initialOntology = om.loadOntology(initialOntologyIRI);
+            logger.debug("Successfully loaded ontology");
+        }
+        catch (OWLOntologyCreationException e) {
+            logger.fatal("Error loading ontology");
+            System.exit(-1);
+        }
+
+        Set<OWLClassExpression> baseSet = new HashSet<OWLClassExpression>();
         ManchesterOWLSyntaxParser parser = new ManchesterOWLSyntaxParserImpl(om.getOntologyConfigurator(), df);
-        parser.setDefaultOntology(o);
+        parser.setDefaultOntology(initialOntology);
 
         final Map<String, OWLEntity> map = new HashMap<>();
-        o.signature().forEach(x -> map.put(x.getIRI().getFragment(), x));
+        initialOntology.signature().forEach(x -> map.put(x.getIRI().getFragment(), x));
         parser.setOWLEntityChecker(new OWLEntityChecker() {
             private <T> T v(String name, Class<T> t) {
                 OWLEntity e = map.get(name);
