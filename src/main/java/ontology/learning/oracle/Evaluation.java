@@ -13,12 +13,15 @@ import org.semanticweb.owlapi.reasoner.OWLReasonerFactory;
 
 import java.time.Duration;
 import java.time.Instant;
+import java.util.HashSet;
 import java.util.Set;
 
 public class Evaluation {
     private Logger logger = LogManager.getLogger("OracleEvaluation");
 
     public void evaluate(OWLOntology resultOntology, OWLReasoner expertReasoner, Set<OWLClassExpression> baseSet) {
+
+        Instant start = Instant.now();
 
         resultOntology.add(expertReasoner.getRootOntology().getAxioms(AxiomType.CLASS_ASSERTION));
         resultOntology.add(expertReasoner.getRootOntology().getAxioms(AxiomType.OBJECT_PROPERTY_ASSERTION));
@@ -30,23 +33,53 @@ public class Evaluation {
         resultReasoner.precomputeInferences(InferenceType.CLASS_ASSERTIONS);
         resultReasoner.precomputeInferences(InferenceType.OBJECT_PROPERTY_ASSERTIONS);
 
+        Instant finish = Instant.now();
+        long timeElapsed = Duration.between(start, finish).toMillis();
+        logger.info("Result ontology classified: " + timeElapsed + " ms");
+
+        start = Instant.now();
+
         expertReasoner.precomputeInferences(InferenceType.OBJECT_PROPERTY_HIERARCHY);
         expertReasoner.precomputeInferences(InferenceType.CLASS_HIERARCHY);
         expertReasoner.precomputeInferences(InferenceType.CLASS_ASSERTIONS);
         expertReasoner.precomputeInferences(InferenceType.OBJECT_PROPERTY_ASSERTIONS);
 
+        finish = Instant.now();
+        timeElapsed = Duration.between(start, finish).toMillis();
+        logger.info("Expert ontology classified: " + timeElapsed + " ms");
+
+        start = Instant.now();
+
+        float quality = 0;
+        int counter = 0;
         for (OWLClassExpression ce : baseSet) {
-            Set<OWLNamedIndividual> directIndividuals = expertReasoner.getInstances(ce, true).getFlattened();
-            Set<OWLNamedIndividual> individuals = expertReasoner.getInstances(ce, false).getFlattened();
+            // logger.info("ce:" + ce);
+            Set<OWLIndividual> assertedIndividuals = new HashSet<OWLIndividual>();
+            for (OWLClassAssertionAxiom ax : expertReasoner.getRootOntology().getClassAssertionAxioms(ce)) {
+                assertedIndividuals.add(ax.getIndividual());
+            }
+            // logger.info("asserted:" + assertedIndividuals);
+            Set<OWLNamedIndividual> inferredIndividuals = expertReasoner.getInstances(ce, false).getFlattened();
+            // logger.info("inferred:" + inferredIndividuals);
             // take set difference
-            individuals.removeAll(directIndividuals);
-            if (!individuals.isEmpty()) {
+            inferredIndividuals.removeAll(assertedIndividuals);
+            if (!inferredIndividuals.isEmpty()) {
                 logger.info("ce:" + ce);
-                Set<OWLNamedIndividual> directIndividualsResult = resultReasoner.getInstances(ce, true).getFlattened();
-                Set<OWLNamedIndividual> individualsResult = resultReasoner.getInstances(ce, false).getFlattened();
-                individualsResult.removeAll(directIndividualsResult);
-                logger.info(individualsResult.size() + " / " + individuals.size());
+                Set<OWLNamedIndividual> inferredIndividualsResult = resultReasoner.getInstances(ce, false).getFlattened();
+                inferredIndividualsResult.removeAll(assertedIndividuals);
+                logger.info(inferredIndividualsResult.size() + " / " + inferredIndividuals.size());
+                quality += ((float) inferredIndividualsResult.size() / inferredIndividuals.size());
+                ++counter;
             }
         }
+        if (counter > 0) {
+            // logger.info("quality:" + quality);
+            // logger.info("counter:" + counter);
+            logger.info("Quality:" + (quality / counter));
+        }
+
+        finish = Instant.now();
+        timeElapsed = Duration.between(start, finish).toMillis();
+        logger.info("Evaluation time: " + timeElapsed + " ms");
     }
 }
