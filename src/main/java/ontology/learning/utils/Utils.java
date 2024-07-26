@@ -20,11 +20,12 @@ public class Utils {
 
     protected static final Logger logger = LogManager.getLogger();
 
-    public static Set<OWLClassExpression> readBaseSet(File f, IRI initialOntologyIRI) {
+    public static Set<OWLClassExpression> readBaseSet(File f, OWLOntology initialOntology) {
 
         OWLOntologyManager om = OWLManager.createOWLOntologyManager();
         OWLDataFactory df = om.getOWLDataFactory();
 
+        /*
         OWLOntology initialOntology = null;
         try {
             initialOntology = om.loadOntology(initialOntologyIRI);
@@ -34,6 +35,7 @@ public class Utils {
             logger.fatal("Error loading ontology");
             System.exit(-1);
         }
+         */
 
         Set<OWLClassExpression> baseSet = new HashSet<OWLClassExpression>();
         ManchesterOWLSyntaxParser parser = new ManchesterOWLSyntaxParserImpl(om.getOntologyConfigurator(), df);

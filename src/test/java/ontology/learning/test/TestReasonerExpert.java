@@ -45,7 +45,7 @@ public class TestReasonerExpert {
 
 		String baseSetFileName = "/home/bs/research/dev/pacco/src/test/resources/baseSet";
 		File baseSetFile = new File(baseSetFileName);
-		baseSet = Utils.readBaseSet(baseSetFile, expertOntologyIRI);
+		// baseSet = Utils.readBaseSet(baseSetFile, expertOntology);
 		// for (OWLClassExpression c : baseSet) {
 		// 	System.out.println("query:" + OWL2SPARQL.buildQuery(c));
 		// }

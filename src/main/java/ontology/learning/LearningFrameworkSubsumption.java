@@ -24,7 +24,7 @@ public class LearningFrameworkSubsumption {
 	private OWLOntology initialOntology;
 	private OWLOntologyManager om;
 	private OWLDataFactory df;
-	private OWLReasonerFactory rf;
+	// private OWLReasonerFactory rf;
 	private OWLReasoner initialReasoner;
 
 	private Set<OWLClassExpression> baseSet;
@@ -39,22 +39,26 @@ public class LearningFrameworkSubsumption {
 	private Hashtable<OWLClassExpression, ArrayList<Set<OWLClassExpression>>> invalidImplications;
 
 	/**
-	 * @param initialOntologyIRI
+	 * @param initialOntology
 	 * @param baseSet: Set with the concept descriptions
 	 * @param expert: The domain expert
 	 * @param sampler: Sampling oracle
 	 */
-	public LearningFrameworkSubsumption(IRI initialOntologyIRI,
+	public LearningFrameworkSubsumption(// IRI initialOntologyIRI,
+										OWLOntology initialOntology,
 										Set<OWLClassExpression> baseSet,
 										ExpertOracle expert,
-										SubsumptionSamplingOracle sampler) {
+										SubsumptionSamplingOracle sampler,
+										OWLReasoner initialOntologyReasoner) {
 
 		this.baseSet = baseSet;
 
 		this.om = OWLManager.createOWLOntologyManager();
 		this.df = om.getOWLDataFactory();
-		this.rf = new ReasonerFactory();
+		this.initialOntology = initialOntology;
+		// this.rf = new ReasonerFactory();
 
+		/*
 		try {
 			this.initialOntology = om.loadOntology(initialOntologyIRI);
 			logger.debug("Successfully loaded ontology");
@@ -66,6 +70,8 @@ public class LearningFrameworkSubsumption {
 
 		this.initialReasoner = this.rf.createReasoner(initialOntology);
 		this.initialReasoner.precomputeInferences(InferenceType.CLASS_HIERARCHY);
+		 */
+		this.initialReasoner = initialOntologyReasoner;
 
 		this.expert = expert;
 		this.sampler = sampler;
@@ -265,7 +271,7 @@ public class LearningFrameworkSubsumption {
 			e.printStackTrace();
 		}
 
-		initialReasoner.dispose();
+		// initialReasoner.dispose();
 		return(resultOntology);
 	}
 }

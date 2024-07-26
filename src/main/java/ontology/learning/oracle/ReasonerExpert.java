@@ -3,19 +3,15 @@ package ontology.learning.oracle;
 import ontology.learning.ExpertOracle;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
-import org.semanticweb.owlapi.model.OWLOntologyManager;
-import org.semanticweb.owlapi.model.OWLSubClassOfAxiom;
-import org.semanticweb.owlapi.model.OWLOntology;
+import org.semanticweb.owlapi.model.*;
 import org.semanticweb.HermiT.ReasonerFactory;
 import org.semanticweb.owlapi.apibinding.OWLManager;
-import org.semanticweb.owlapi.model.IRI;
+import org.semanticweb.owlapi.model.parameters.Imports;
 import org.semanticweb.owlapi.reasoner.InferenceType;
 import org.semanticweb.owlapi.reasoner.OWLReasoner;
 import org.semanticweb.owlapi.reasoner.OWLReasonerFactory;
 
 import ontology.learning.Implication;
-
-import org.semanticweb.owlapi.model.OWLOntologyCreationException;
 
 import java.time.Duration;
 import java.time.Instant;
@@ -43,18 +39,18 @@ public class ReasonerExpert implements ExpertOracle {
 		}
 		Instant finish = Instant.now();
 		long timeElapsed = Duration.between(start, finish).toMillis();
-		logger.info("Loaded ontology: " + timeElapsed + " ms");
+		logger.info("Loaded expert ontology: " + timeElapsed + " ms");
 
 		OWLReasonerFactory rf = new ReasonerFactory();
 		this.reasoner = rf.createReasoner(ontology);
 		start = Instant.now();
 		this.reasoner.precomputeInferences(InferenceType.OBJECT_PROPERTY_HIERARCHY);
 		this.reasoner.precomputeInferences(InferenceType.CLASS_HIERARCHY);
-		// this.reasoner.precomputeInferences(InferenceType.CLASS_ASSERTIONS);
-		// this.reasoner.precomputeInferences(InferenceType.OBJECT_PROPERTY_ASSERTIONS);
+		this.reasoner.precomputeInferences(InferenceType.CLASS_ASSERTIONS);
+		this.reasoner.precomputeInferences(InferenceType.OBJECT_PROPERTY_ASSERTIONS);
 		finish = Instant.now();
 		timeElapsed = Duration.between(start, finish).toMillis();
-		logger.info("Classified ontology: " + timeElapsed + " ms");
+		logger.info("Classified expert ontology: " + timeElapsed + " ms");
 	}
 
 	public boolean holds(Implication imp) {

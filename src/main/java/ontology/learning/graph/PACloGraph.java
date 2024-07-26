@@ -42,10 +42,22 @@ public class PACloGraph {
         OWLDataFactory df = om.getOWLDataFactory();
         OWLReasonerFactory rf = new ReasonerFactory();
 
+        OWLOntology initialOntology = null;
+        try {
+            initialOntology = om.loadOntology(initialOntologyIRI);
+            logger.debug("Successfully loaded initial ontology");
+        }
+        catch (OWLOntologyCreationException e) {
+            logger.fatal("Error loading initial ontology");
+            System.exit(-1);
+        }
+        OWLReasoner initialOntologyReasoner = rf.createReasoner(initialOntology);
+        initialOntologyReasoner.precomputeInferences(InferenceType.CLASS_HIERARCHY);
+
         // Measure time
         Instant start = Instant.now();
 
-        Set<OWLClassExpression> baseSet = Utils.readBaseSet(baseSetFile, initialOntologyIRI);
+        Set<OWLClassExpression> baseSet = Utils.readBaseSet(baseSetFile, initialOntology);
         // baseSet.add(df.getOWLThing());
         baseSet.add(df.getOWLNothing());
 
@@ -54,7 +66,7 @@ public class PACloGraph {
         SubsumptionSamplingOracle sampler = new RandomSubsumptionSampler(baseSet);
         // SamplingOracle sampler = new RandomSampler(baseSet);
 
-        LearningFrameworkSubsumption framework = new LearningFrameworkSubsumption(initialOntologyIRI, baseSet, expert, sampler);
+        LearningFrameworkSubsumption framework = new LearningFrameworkSubsumption(initialOntology, baseSet, expert, sampler, initialOntologyReasoner);
         // LearningFrameworkCompletion pacCompletion = new LearningFrameworkCompletion(initialOntology, baseSet, expert, sampler, om, reasoner);
         framework.upperApproximation(epsilon, delta, resultOntologyIRI);
 
