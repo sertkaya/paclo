@@ -30,6 +30,7 @@ public class WeightedSubsumptionSampler implements SubsumptionSamplingOracle {
 
 	private Set<OWLClassExpression> baseSet;
 
+
 	// Key: Class expression from base set
 	// Value: Number of its instances
 	private HashMap<OWLClassExpression, Integer> instanceCounts = new HashMap<OWLClassExpression, Integer>();
@@ -42,12 +43,18 @@ public class WeightedSubsumptionSampler implements SubsumptionSamplingOracle {
 	private long[] instanceWeights;
 	private long cumulativeInstanceWeight;
 
-	public WeightedSubsumptionSampler(Set<OWLClassExpression> baseSet, OWLReasoner initialOntologyReasoner) {
+	private boolean uniform_conclusions = false;
+
+	private static Random rd = new Random();
+
+
+	public WeightedSubsumptionSampler(Set<OWLClassExpression> baseSet, OWLReasoner initialOntologyReasoner, boolean uniform_conclusions) {
 		this.baseSet = baseSet;
+		this.uniform_conclusions = uniform_conclusions;
 
 		for (OWLClassExpression ce : baseSet) {
 			Set<OWLNamedIndividual> instances = initialOntologyReasoner.getInstances(ce).getFlattened();
-			instanceCounts.put(ce, instanceCounts.size());
+			instanceCounts.put(ce, instances.size());
 			for (OWLNamedIndividual ind : instances) {
 				if (instanceTypes.containsKey(ind)) {
 					instanceTypes.get(ind).add(ce);
@@ -71,38 +78,54 @@ public class WeightedSubsumptionSampler implements SubsumptionSamplingOracle {
 		}
 	}
 	
+	public WeightedSubsumptionSampler(Set<OWLClassExpression> baseSet, OWLReasoner initialOntologyReasoner) {
+		this(baseSet, initialOntologyReasoner, false);
+	}
+
 	public Pair<Set<OWLClassExpression>, OWLClassExpression> sample() {
-		// Here comes the implementation of the weighted sampler.
-
 		Set<OWLClassExpression> premise = samplePremise();
-
-
-		Set<OWLClassExpression> remaining = new HashSet<OWLClassExpression>(baseSet);
-		
-		remaining.removeAll(premise);
-		int k = new Random().nextInt(remaining.size());
-		int i = 0;
-		for (OWLClassExpression conclusion : remaining) {
-			if (i == k) {
-				return new Pair<Set<OWLClassExpression>, OWLClassExpression>(premise, conclusion);
-			}
-			i++;
-		}
-		throw new IllegalStateException("Error in sampling.");
+		return new Pair<>(premise, sampleConclusion(premise));
 	}
 
 	private Set<OWLClassExpression> samplePremise() {
-		Random rd = new Random();
-
-		long weight = Math.abs(rd.nextLong()) % cumulativeInstanceWeight;
-		int index = Math.abs(Arrays.binarySearch(instanceWeights, weight) + 1); // TODO: Check if this is correct.
-
 		Set<OWLClassExpression> premise = new HashSet<OWLClassExpression>();
-		for (OWLClassExpression expr : instanceTypes.get(instanceNames[index])) {
-			if (rd.nextBoolean()) {
-				premise.add(expr);
+		do {
+			premise.clear();
+			for (OWLClassExpression expr : instanceTypes.get(instanceNames[getRandomIndex(instanceWeights, cumulativeInstanceWeight)])) {
+				if (rd.nextBoolean()) {
+					premise.add(expr);
+				}
 			}
-		}
+		} while (premise.size() == baseSet.size());
 		return premise;
 	}
+
+	private OWLClassExpression sampleConclusion(Set<OWLClassExpression> premise) {
+		Set<OWLClassExpression> remaining = new HashSet<OWLClassExpression>(baseSet);
+		remaining.removeAll(premise);
+		assert remaining.size() > 0;
+
+		OWLClassExpression[] types = remaining.toArray(new OWLClassExpression[0]);
+		if (this.uniform_conclusions) {
+			return types[rd.nextInt(types.length)];
+		}
+
+		long[] weights = new long[types.length];
+		long total = 0;
+		for (int i = 0; i < types.length; ++i) {
+			total += (instanceNames.length - instanceCounts.get(types[i]));
+			weights[i] = total;
+		}
+
+		return types[getRandomIndex(weights, total)];
+	}
+
+	private static int getRandomIndex(long[] weights, long total) {
+		int index = Math.abs(Arrays.binarySearch(weights, Math.abs(rd.nextLong()) % total) + 1);
+		while (index > 0 && weights[index] == weights[index - 1]) {
+			index--;
+		}
+		return index; // TODO: Check if this is correct.
+	}
+
 }
