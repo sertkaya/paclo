@@ -67,7 +67,7 @@ public class WeightedSubsumptionSampler implements SubsumptionSamplingOracle {
 		instanceTypes = new HashMap<OWLNamedIndividual, ArrayList<OWLClassExpression>>();
 		for (OWLClassExpression ce : baseSet) {
 			System.out.print(ce + ": ");
-			Set<OWLNamedIndividual> instances = reasoner.getInstances(ce, true).getFlattened();
+			Set<OWLNamedIndividual> instances = reasoner.getInstances(ce).getFlattened();
 			System.out.println(instances.size());
 			instanceCounts.put(ce, instances.size());
 			for (OWLNamedIndividual ind : instances) {
