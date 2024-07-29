@@ -4,7 +4,8 @@ import javafx.util.Pair;
 import ontology.learning.sampler.SubsumptionSamplingOracle;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
-import org.semanticweb.HermiT.ReasonerFactory;
+// import org.semanticweb.HermiT.ReasonerFactory;
+import org.semanticweb.elk.owlapi.ElkReasonerFactory;
 import org.semanticweb.owlapi.apibinding.OWLManager;
 import org.semanticweb.owlapi.formats.OWLXMLDocumentFormat;
 import org.semanticweb.owlapi.io.OWLOntologyDocumentTarget;
@@ -89,7 +90,8 @@ public class LearningFrameworkSubsumption {
 			logger.fatal("Error creating auxiliary ontology");
 			System.exit(-1);
 		}
-		auxiliaryReasoner = new ReasonerFactory().createReasoner(auxiliaryOntology);
+		// auxiliaryReasoner = new ReasonerFactory().createReasoner(auxiliaryOntology);
+		auxiliaryReasoner = new ElkReasonerFactory().createReasoner(auxiliaryOntology);
 	}
 
 	private boolean isImplicationValid(Set<OWLClassExpression> premise, OWLClassExpression conclusion) {
@@ -150,6 +152,23 @@ public class LearningFrameworkSubsumption {
 			}
 		}
 		// logger.info("Generated " + samples + " samples");
+		auxiliaryReasoner.flush();
+		sampler.update_sampler(auxiliaryReasoner);
+
+
+		for (int i = 0; i < k; ++i) {
+			Pair<Set<OWLClassExpression>, OWLClassExpression>  query = this.sampler.sample();
+
+			samples++;
+			samplerQueries++;
+			Set<OWLClassExpression> premise = query.getKey();
+			Set<OWLClassExpression> closure = implicationClosure(imps, premise);
+			if (!closure.contains(df.getOWLNothing()) && !closure.contains(query.getValue()) && isImplicationValid(premise, query.getValue())) {
+				// logger.info("Samples at this iteration: " + samples);
+				return closure;
+			}
+		}
+
 		return null;
 	}
 	
@@ -251,8 +270,8 @@ public class LearningFrameworkSubsumption {
 				}
 			}
 			++iteration;
-			sampler.update_sampler(auxiliaryReasoner);
-			auxiliaryReasoner.flush();
+			// auxiliaryReasoner.flush();
+			// sampler.update_sampler(auxiliaryReasoner);
 		}
 
 		OWLOntology resultOntology = null;
@@ -267,19 +286,13 @@ public class LearningFrameworkSubsumption {
 		int axiomCount = 0;
         for (int i = 0; i < imps.size(); ++i) {
 			OWLSubClassOfAxiom ax = imps.get(i).toGCI();
-			logger.info("IMP:" + imps.get(i));
-			logger.info("AX:" + ax);
-			// logger.info("AX.lhs:" + ax.getSubClass());
-			// logger.info("AX.rhs:" + ax.getSuperClass());
-			// if (ax.getSubClass().isOWLThing())
-			// 	continue;
 			if (this.initialReasoner.isEntailed(ax)) {
 				logger.debug("Did not add axiom: " + ax);
 			} else {
 				resultOntology.add(ax);
 				++axiomCount;
-				logger.info("Added axiom: " + ax);
-				logger.info("imp: " + imps.get(i));
+				// logger.info("Added axiom: " + ax);
+				// logger.info("imp: " + imps.get(i));
 			}
 		}
 

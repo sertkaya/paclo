@@ -6,7 +6,7 @@ import org.apache.commons.lang3.ObjectUtils.Null;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.eclipse.rdf4j.model.vocabulary.OWL;
-import org.semanticweb.HermiT.ReasonerFactory;
+// import org.semanticweb.HermiT.ReasonerFactory;
 import org.semanticweb.owlapi.apibinding.OWLManager;
 import org.semanticweb.owlapi.model.*;
 import org.semanticweb.owlapi.model.parameters.Imports;
@@ -66,9 +66,11 @@ public class WeightedSubsumptionSampler implements SubsumptionSamplingOracle {
 		logger.info("Update starting");
 		instanceTypes = new HashMap<OWLNamedIndividual, ArrayList<OWLClassExpression>>();
 		for (OWLClassExpression ce : baseSet) {
-			System.out.print(ce + ": ");
+			// System.out.print(ce + ": ");
 			Set<OWLNamedIndividual> instances = reasoner.getInstances(ce).getFlattened();
-			System.out.println(instances.size());
+			if (instances.size() > 0)
+				logger.info(ce + ":" + instances.size());
+			// System.out.println(instances.size());
 			instanceCounts.put(ce, instances.size());
 			for (OWLNamedIndividual ind : instances) {
 				if (instanceTypes.containsKey(ind)) {
@@ -91,6 +93,7 @@ public class WeightedSubsumptionSampler implements SubsumptionSamplingOracle {
 			cumulativeInstanceWeight += (1 << entry.getValue().size());
 			instanceWeights[i++] = cumulativeInstanceWeight;
 		}
+		logger.info("cumulative instance weight:" + cumulativeInstanceWeight);
 		logger.info("Update finished");
 	}
 
@@ -131,6 +134,8 @@ public class WeightedSubsumptionSampler implements SubsumptionSamplingOracle {
 
 	private static int getRandomIndex(long[] weights, long total) {
 		int index = Math.abs(Arrays.binarySearch(weights, Math.abs(rd.nextLong()) % total) + 1);
+		if (index == weights.length)
+			index--;
 		while (index > 0 && weights[index] == weights[index - 1]) {
 			index--;
 		}

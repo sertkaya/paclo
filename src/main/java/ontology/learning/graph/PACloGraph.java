@@ -7,7 +7,9 @@ import ontology.learning.sampler.SubsumptionSamplingOracle;
 import ontology.learning.utils.Utils;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
-import org.semanticweb.HermiT.ReasonerFactory;
+// import org.semanticweb.HermiT.ReasonerFactory;
+import org.semanticweb.elk.owlapi.ElkReasonerFactory;
+import org.semanticweb.elk.reasoner.ReasonerFactory;
 import org.semanticweb.owlapi.apibinding.OWLManager;
 import org.semanticweb.owlapi.model.*;
 import org.semanticweb.owlapi.reasoner.InferenceType;
@@ -40,7 +42,7 @@ public class PACloGraph {
 
         OWLOntologyManager om = OWLManager.createOWLOntologyManager();
         OWLDataFactory df = om.getOWLDataFactory();
-        OWLReasonerFactory rf = new ReasonerFactory();
+        OWLReasonerFactory rf = new ElkReasonerFactory();
 
         OWLOntology initialOntology = null;
         try {

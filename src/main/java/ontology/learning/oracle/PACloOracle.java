@@ -8,7 +8,8 @@ import ontology.learning.sampler.WeightedSubsumptionSampler;
 import ontology.learning.utils.Utils;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
-import org.semanticweb.HermiT.ReasonerFactory;
+// import org.semanticweb.HermiT.ReasonerFactory;
+import org.semanticweb.elk.owlapi.ElkReasonerFactory;
 import org.semanticweb.owlapi.apibinding.OWLManager;
 import org.semanticweb.owlapi.model.*;
 import org.semanticweb.owlapi.model.parameters.Imports;
@@ -46,7 +47,7 @@ public class PACloOracle {
         ExpertOracle expert = new ReasonerExpert(expertOntologyIRI);
 
         OWLOntologyManager om =  OWLManager.createOWLOntologyManager();
-        OWLReasonerFactory rf = new ReasonerFactory();
+        OWLReasonerFactory rf = new ElkReasonerFactory();
 
         OWLOntology initialOntology = null;
         try {
@@ -72,8 +73,7 @@ public class PACloOracle {
 
         for (int i = 0; i < 1; ++i) {
             // SubsumptionSamplingOracle sampler = new RandomSubsumptionSampler(baseSet);
-            // SubsumptionSamplingOracle sampler = new WeightedSubsumptionSampler(baseSet, initialOntologyReasoner);
-            SubsumptionSamplingOracle sampler = new WeightedSubsumptionSampler(baseSet, initialOntologyReasoner, true);
+            SubsumptionSamplingOracle sampler = new WeightedSubsumptionSampler(baseSet, initialOntologyReasoner, false);
             logger.info("\n\nrun " + i);
             Instant start = Instant.now();
             LearningFrameworkSubsumption framework = new LearningFrameworkSubsumption(initialOntology, baseSet, expert, sampler, initialOntologyReasoner);

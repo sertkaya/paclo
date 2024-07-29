@@ -5,7 +5,8 @@ import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.Hashtable;
 
-import org.semanticweb.HermiT.ReasonerFactory;
+// import org.semanticweb.HermiT.ReasonerFactory;
+import org.semanticweb.elk.owlapi.ElkReasonerFactory;
 import org.semanticweb.owlapi.formats.OWLXMLDocumentFormat;
 import org.semanticweb.owlapi.model.IRI;
 import org.semanticweb.owlapi.model.OWLClassExpression;
@@ -80,7 +81,7 @@ public class LearningFrameworkCompletion {
 			System.exit(-1);
 		}
 		this.auxiliaryOntology = auxiliaryOntology;
-		ReasonerFactory rf = new ReasonerFactory();
+		OWLReasonerFactory rf = new ElkReasonerFactory();
 		this.auxiliaryReasoner = rf.createNonBufferingReasoner(auxiliaryOntology);
 		this.auxiliaryReasoner.precomputeInferences(InferenceType.CLASS_HIERARCHY);
 	}

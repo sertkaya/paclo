@@ -3,8 +3,9 @@ package ontology.learning.oracle;
 import ontology.learning.ExpertOracle;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
+import org.semanticweb.elk.owlapi.ElkReasonerFactory;
 import org.semanticweb.owlapi.model.*;
-import org.semanticweb.HermiT.ReasonerFactory;
+// import org.semanticweb.HermiT.ReasonerFactory;
 import org.semanticweb.owlapi.apibinding.OWLManager;
 import org.semanticweb.owlapi.model.parameters.Imports;
 import org.semanticweb.owlapi.reasoner.InferenceType;
@@ -41,7 +42,7 @@ public class ReasonerExpert implements ExpertOracle {
 		long timeElapsed = Duration.between(start, finish).toMillis();
 		logger.info("Loaded expert ontology: " + timeElapsed + " ms");
 
-		OWLReasonerFactory rf = new ReasonerFactory();
+		OWLReasonerFactory rf = new ElkReasonerFactory();
 		this.reasoner = rf.createReasoner(ontology);
 		// start = Instant.now();
 		// this.reasoner.precomputeInferences(InferenceType.OBJECT_PROPERTY_HIERARCHY);

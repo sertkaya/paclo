@@ -2,7 +2,8 @@ package ontology.learning.oracle;
 
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
-import org.semanticweb.HermiT.ReasonerFactory;
+// import org.semanticweb.HermiT.ReasonerFactory;
+import org.semanticweb.elk.owlapi.ElkReasonerFactory;
 import org.semanticweb.owlapi.apibinding.OWLManager;
 import org.semanticweb.owlapi.model.*;
 import org.semanticweb.owlapi.model.parameters.Imports;
@@ -27,7 +28,7 @@ public class Evaluation {
         // resultOntology.add(expertReasoner.getRootOntology().getAxioms(AxiomType.OBJECT_PROPERTY_ASSERTION));
         resultOntology.add(expertReasoner.getRootOntology().getABoxAxioms(Imports.INCLUDED));
 
-        OWLReasonerFactory rf = new ReasonerFactory();
+        OWLReasonerFactory rf = new ElkReasonerFactory();
         OWLReasoner resultReasoner = rf.createReasoner(resultOntology);
         resultReasoner.precomputeInferences(InferenceType.OBJECT_PROPERTY_HIERARCHY);
         resultReasoner.precomputeInferences(InferenceType.CLASS_HIERARCHY);
@@ -69,11 +70,11 @@ public class Evaluation {
             Set<OWLNamedIndividual> inferredIndividuals = expertReasoner.getInstances(ce, false).getFlattened();
             // logger.info("inferred:" + inferredIndividuals);
             // take set difference
-            inferredIndividuals.removeAll(instancesInitialOntology);
+            // inferredIndividuals.removeAll(instancesInitialOntology);
             if (!inferredIndividuals.isEmpty()) {
                 logger.info("ce:" + ce);
                 Set<OWLNamedIndividual> inferredIndividualsResult = resultReasoner.getInstances(ce, false).getFlattened();
-                inferredIndividualsResult.removeAll(instancesInitialOntology);
+                // inferredIndividualsResult.removeAll(instancesInitialOntology);
                 logger.info(inferredIndividualsResult.size() + " / " + inferredIndividuals.size());
                 quality += ((float) inferredIndividualsResult.size() / inferredIndividuals.size());
                 ++counter;
