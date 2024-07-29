@@ -63,13 +63,13 @@ public class WeightedSubsumptionSampler implements SubsumptionSamplingOracle {
 	}
 
 	public void update_sampler(OWLReasoner reasoner) {
-		logger.info("Update starting");
+		logger.debug("Update starting");
 		instanceTypes = new HashMap<OWLNamedIndividual, ArrayList<OWLClassExpression>>();
 		for (OWLClassExpression ce : baseSet) {
 			// System.out.print(ce + ": ");
 			Set<OWLNamedIndividual> instances = reasoner.getInstances(ce).getFlattened();
 			if (instances.size() > 0)
-				logger.info(ce + ":" + instances.size());
+				logger.debug(ce + ":" + instances.size());
 			// System.out.println(instances.size());
 			instanceCounts.put(ce, instances.size());
 			for (OWLNamedIndividual ind : instances) {
