@@ -7,7 +7,9 @@ import org.apache.logging.log4j.Logger;
 import org.semanticweb.HermiT.ReasonerFactory;
 import org.semanticweb.owlapi.apibinding.OWLManager;
 import org.semanticweb.owlapi.formats.OWLXMLDocumentFormat;
+import org.semanticweb.owlapi.io.OWLOntologyDocumentTarget;
 import org.semanticweb.owlapi.model.*;
+import org.semanticweb.owlapi.model.parameters.OntologyCopy;
 import org.semanticweb.owlapi.reasoner.InferenceType;
 import org.semanticweb.owlapi.reasoner.OWLReasoner;
 import org.semanticweb.owlapi.reasoner.OWLReasonerFactory;
@@ -22,10 +24,12 @@ import java.util.Set;
 public class LearningFrameworkSubsumption {
 
 	private OWLOntology initialOntology;
+	private OWLOntology auxiliaryOntology;
 	private OWLOntologyManager om;
 	private OWLDataFactory df;
 	// private OWLReasonerFactory rf;
 	private OWLReasoner initialReasoner;
+	private OWLReasoner auxiliaryReasoner;
 
 	private Set<OWLClassExpression> baseSet;
 	private ExpertOracle expert;
@@ -79,7 +83,13 @@ public class LearningFrameworkSubsumption {
 		this.expertQueries = 0;
 		this.invalidImplications = null;
 
-
+		try {
+			auxiliaryOntology = om.copyOntology(initialOntology, OntologyCopy.SHALLOW);
+		} catch (OWLOntologyCreationException e) {
+			logger.fatal("Error creating auxiliary ontology");
+			System.exit(-1);
+		}
+		auxiliaryReasoner = new ReasonerFactory().createReasoner(auxiliaryOntology);
 	}
 
 	private boolean isImplicationValid(Set<OWLClassExpression> premise, OWLClassExpression conclusion) {
@@ -209,15 +219,18 @@ public class LearningFrameworkSubsumption {
 				
 					Set<OWLClassExpression> newConclusion = new HashSet<OWLClassExpression>(complete(newPremise));
 					if (!newPremise.equals(newConclusion)) {
-						found = true;
 						// construct the new implication
 						newConclusion.removeAll(newPremise);
 						Implication newImp = new Implication(newPremise, newConclusion, df);
 						
 						// replace imp with the newImp
 						imps.set(i, newImp);
-						
-						if (!counterExample.containsAll(newConclusion)) {
+
+						auxiliaryOntology.add(newImp.toGCI());
+						System.out.println("Added axiom: " + newImp.toGCI());
+
+						if (counterExample.containsAll(newConclusion)) {
+							found = true;
 						    break;
 						}
 					}
@@ -230,12 +243,16 @@ public class LearningFrameworkSubsumption {
 				Implication newImp = new Implication(counterExample, newConclusion, df);
 				if (imps.add(newImp)) {
 					logger.debug("Added implication: " + newImp);
+					auxiliaryOntology.add(newImp.toGCI());
+					System.out.println("Added axiom: " + newImp.toGCI());
 				} else {
 					logger.error("Could not add implication: " + newImp);
 
 				}
 			}
 			++iteration;
+			sampler.update_sampler(auxiliaryReasoner);
+			auxiliaryReasoner.flush();
 		}
 
 		OWLOntology resultOntology = null;
@@ -272,6 +289,7 @@ public class LearningFrameworkSubsumption {
 		}
 
 		// initialReasoner.dispose();
+		auxiliaryReasoner.dispose();
 		return(resultOntology);
 	}
 }
