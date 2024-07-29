@@ -5,6 +5,7 @@ import java.util.Random;
 import java.util.Set;
 
 import org.semanticweb.owlapi.model.OWLClassExpression;
+import org.semanticweb.owlapi.reasoner.OWLReasoner;
 
 import javafx.util.Pair;
 
@@ -14,7 +15,7 @@ public class RandomSubsumptionSampler implements SubsumptionSamplingOracle {
 	public RandomSubsumptionSampler(Set<OWLClassExpression> baseSet) {
 		this.baseSet = baseSet;
 	}
-	
+
 	/**
 	 * Randomly select a subsumption query over baseSet
 	 */
@@ -43,4 +44,6 @@ public class RandomSubsumptionSampler implements SubsumptionSamplingOracle {
 		}
 		throw new IllegalStateException("Error in sampling.");
 	}
+
+	public void update_sampler(OWLReasoner reasoner) {}
 }
