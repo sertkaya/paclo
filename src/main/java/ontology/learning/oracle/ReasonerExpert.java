@@ -43,14 +43,14 @@ public class ReasonerExpert implements ExpertOracle {
 
 		OWLReasonerFactory rf = new ReasonerFactory();
 		this.reasoner = rf.createReasoner(ontology);
-		start = Instant.now();
-		this.reasoner.precomputeInferences(InferenceType.OBJECT_PROPERTY_HIERARCHY);
-		this.reasoner.precomputeInferences(InferenceType.CLASS_HIERARCHY);
-		this.reasoner.precomputeInferences(InferenceType.CLASS_ASSERTIONS);
-		this.reasoner.precomputeInferences(InferenceType.OBJECT_PROPERTY_ASSERTIONS);
-		finish = Instant.now();
-		timeElapsed = Duration.between(start, finish).toMillis();
-		logger.info("Classified expert ontology: " + timeElapsed + " ms");
+		// start = Instant.now();
+		// this.reasoner.precomputeInferences(InferenceType.OBJECT_PROPERTY_HIERARCHY);
+		// this.reasoner.precomputeInferences(InferenceType.CLASS_HIERARCHY);
+		// this.reasoner.precomputeInferences(InferenceType.CLASS_ASSERTIONS);
+		// this.reasoner.precomputeInferences(InferenceType.OBJECT_PROPERTY_ASSERTIONS);
+		// finish = Instant.now();
+		// timeElapsed = Duration.between(start, finish).toMillis();
+		// logger.info("Classified expert ontology: " + timeElapsed + " ms");
 	}
 
 	public boolean holds(Implication imp) {

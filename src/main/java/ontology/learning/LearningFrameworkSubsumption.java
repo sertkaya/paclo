@@ -227,12 +227,12 @@ public class LearningFrameworkSubsumption {
 						imps.set(i, newImp);
 
 						auxiliaryOntology.add(newImp.toGCI());
-						System.out.println("Added axiom: " + newImp.toGCI());
+						// System.out.println("Added axiom: " + newImp.toGCI());
 
-						if (counterExample.containsAll(newConclusion)) {
+						// if (counterExample.containsAll(newConclusion)) {
 							found = true;
-						    break;
-						}
+							break;
+						// }
 					}
 				}
 			}
@@ -244,7 +244,7 @@ public class LearningFrameworkSubsumption {
 				if (imps.add(newImp)) {
 					logger.debug("Added implication: " + newImp);
 					auxiliaryOntology.add(newImp.toGCI());
-					System.out.println("Added axiom: " + newImp.toGCI());
+					// System.out.println("Added axiom: " + newImp.toGCI());
 				} else {
 					logger.error("Could not add implication: " + newImp);
 
@@ -267,12 +267,19 @@ public class LearningFrameworkSubsumption {
 		int axiomCount = 0;
         for (int i = 0; i < imps.size(); ++i) {
 			OWLSubClassOfAxiom ax = imps.get(i).toGCI();
+			logger.info("IMP:" + imps.get(i));
+			logger.info("AX:" + ax);
+			// logger.info("AX.lhs:" + ax.getSubClass());
+			// logger.info("AX.rhs:" + ax.getSuperClass());
+			// if (ax.getSubClass().isOWLThing())
+			// 	continue;
 			if (this.initialReasoner.isEntailed(ax)) {
 				logger.debug("Did not add axiom: " + ax);
 			} else {
 				resultOntology.add(ax);
 				++axiomCount;
-				logger.debug("Added axiom: " + ax);
+				logger.info("Added axiom: " + ax);
+				logger.info("imp: " + imps.get(i));
 			}
 		}
 

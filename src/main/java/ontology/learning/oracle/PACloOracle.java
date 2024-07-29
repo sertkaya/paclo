@@ -70,10 +70,10 @@ public class PACloOracle {
 
         Set<OWLClassExpression> baseSet = Utils.readBaseSet(baseSetFile, initialOntology);
 
-        // SubsumptionSamplingOracle sampler = new RandomSubsumptionSampler(baseSet);
-        SubsumptionSamplingOracle sampler = new WeightedSubsumptionSampler(baseSet, initialOntologyReasoner);
-
-        for (int i = 0; i < 5; ++i) {
+        for (int i = 0; i < 1; ++i) {
+            // SubsumptionSamplingOracle sampler = new RandomSubsumptionSampler(baseSet);
+            // SubsumptionSamplingOracle sampler = new WeightedSubsumptionSampler(baseSet, initialOntologyReasoner);
+            SubsumptionSamplingOracle sampler = new WeightedSubsumptionSampler(baseSet, initialOntologyReasoner, true);
             logger.info("\n\nrun " + i);
             Instant start = Instant.now();
             LearningFrameworkSubsumption framework = new LearningFrameworkSubsumption(initialOntology, baseSet, expert, sampler, initialOntologyReasoner);
