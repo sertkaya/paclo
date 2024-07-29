@@ -93,8 +93,8 @@ public class WeightedSubsumptionSampler implements SubsumptionSamplingOracle {
 			cumulativeInstanceWeight += (1 << entry.getValue().size());
 			instanceWeights[i++] = cumulativeInstanceWeight;
 		}
-		logger.info("cumulative instance weight:" + cumulativeInstanceWeight);
-		logger.info("Update finished");
+		logger.debug("cumulative instance weight:" + cumulativeInstanceWeight);
+		logger.debug("Update finished");
 	}
 
 	private Set<OWLClassExpression> samplePremise() {

@@ -72,10 +72,10 @@ public class Evaluation {
             // take set difference
             // inferredIndividuals.removeAll(instancesInitialOntology);
             if (!inferredIndividuals.isEmpty()) {
-                logger.info("ce:" + ce);
+                logger.debug("ce:" + ce);
                 Set<OWLNamedIndividual> inferredIndividualsResult = resultReasoner.getInstances(ce, false).getFlattened();
                 // inferredIndividualsResult.removeAll(instancesInitialOntology);
-                logger.info(inferredIndividualsResult.size() + " / " + inferredIndividuals.size());
+                logger.debug(inferredIndividualsResult.size() + " / " + inferredIndividuals.size());
                 quality += ((float) inferredIndividualsResult.size() / inferredIndividuals.size());
                 ++counter;
             }
