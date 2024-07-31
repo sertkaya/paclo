@@ -225,8 +225,8 @@ public class LearningFrameworkSubsumption {
 		boolean found = false;
 
 		while ((counterExample = getCounterExample(imps, callsToSamplingOracle(epsilon, delta, iteration))) != null) { 
-			// logger.info("iteration:" + iteration);
-			// logger.info("expert queries:" + this.expertQueries);
+			logger.info("iteration:" + iteration);
+			logger.info("expert queries:" + this.expertQueries);
 			// logger.info("implications:" + imps.size());
 			found = false;
 			Implication imp = null;

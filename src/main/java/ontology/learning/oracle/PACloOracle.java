@@ -71,21 +71,18 @@ public class PACloOracle {
 
         Set<OWLClassExpression> baseSet = Utils.readBaseSet(baseSetFile, initialOntology);
 
-        for (int i = 0; i < 1; ++i) {
-            logger.info("\n\nrun " + i);
-            // SubsumptionSamplingOracle sampler = new RandomSubsumptionSampler(baseSet);
-            SubsumptionSamplingOracle sampler = new WeightedSubsumptionSampler(baseSet, initialOntologyReasoner, false);
-            Instant start = Instant.now();
-            LearningFrameworkSubsumption framework = new LearningFrameworkSubsumption(initialOntology, baseSet, expert, sampler, initialOntologyReasoner);
-            OWLOntology resultOntology = framework.upperApproximation(epsilon, delta, resultOntologyIRI);
+        // SubsumptionSamplingOracle sampler = new RandomSubsumptionSampler(baseSet);
+        SubsumptionSamplingOracle sampler = new WeightedSubsumptionSampler(baseSet, initialOntologyReasoner, false);
+        Instant start = Instant.now();
+        LearningFrameworkSubsumption framework = new LearningFrameworkSubsumption(initialOntology, baseSet, expert, sampler, initialOntologyReasoner);
+        OWLOntology resultOntology = framework.upperApproximation(epsilon, delta, resultOntologyIRI);
 
-            Instant finish = Instant.now();
-            long timeElapsed = Duration.between(start, finish).toMillis();
-            logger.info("Execution time: " + timeElapsed + " ms");
+        Instant finish = Instant.now();
+        long timeElapsed = Duration.between(start, finish).toMillis();
+        logger.info("Execution time: " + timeElapsed + " ms");
 
-            Evaluation e = new Evaluation();
-            e.evaluate(resultOntology, ((ReasonerExpert) expert).getReasoner(), baseSet, initialOntologyReasoner);
-        }
+        Evaluation e = new Evaluation();
+        e.evaluate(resultOntology, ((ReasonerExpert) expert).getReasoner(), baseSet, initialOntologyReasoner);
     }
 
 
