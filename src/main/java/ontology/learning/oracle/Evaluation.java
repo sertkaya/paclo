@@ -54,8 +54,10 @@ public class Evaluation {
          */
 
         start = Instant.now();
-        float quality = 0;
+        float sum_of_recalls = 0;
         int counter = 0;
+        int allInferred = 0;
+        int allInferredResult = 0;
         for (OWLClassExpression ce : baseSet) {
             // logger.info("ce:" + ce);
             // Set<OWLIndividual> instancesInitialOntology = new HashSet<OWLIndividual>();
@@ -72,19 +74,26 @@ public class Evaluation {
             // take set difference
             // inferredIndividuals.removeAll(instancesInitialOntology);
             if (!inferredIndividuals.isEmpty()) {
+                allInferred += inferredIndividuals.size();
                 logger.info("ce:" + ce);
                 Set<OWLNamedIndividual> inferredIndividualsResult = resultReasoner.getInstances(ce, false).getFlattened();
                 // inferredIndividualsResult.removeAll(instancesInitialOntology);
-                logger.info(inferredIndividualsResult.size() + " / " + inferredIndividuals.size());
-                quality += ((float) inferredIndividualsResult.size() / inferredIndividuals.size());
+                assert inferredIndividuals.containsAll(inferredIndividualsResult);
+                allInferredResult += inferredIndividualsResult.size();
+                float recall = (float) inferredIndividualsResult.size() / inferredIndividuals.size();
+                logger.info(inferredIndividualsResult.size() + "/" + inferredIndividuals.size() + " = " + recall);
+                sum_of_recalls += recall;
                 ++counter;
             }
         }
+        logger.info("Classes with inferred instances: " + counter);
         if (counter > 0) {
             // logger.info("quality:" + quality);
             // logger.info("counter:" + counter);
-            logger.info("Quality: " + (quality / counter));
+            logger.info("Macro recall: " + (sum_of_recalls / counter));
+            logger.info("Micro recall: " + allInferredResult + "/" + allInferred + " = " + ((float) allInferredResult / allInferred));
         }
+        logger.info("Classes without inferred instances: " + (baseSet.size() - counter));
 
         finish = Instant.now();
         timeElapsed = Duration.between(start, finish).toMillis();
