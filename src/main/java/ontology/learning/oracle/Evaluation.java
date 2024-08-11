@@ -91,7 +91,8 @@ public class Evaluation {
             // logger.info("quality:" + quality);
             // logger.info("counter:" + counter);
             logger.info("Macro recall: " + (sum_of_recalls / counter));
-            logger.info("Micro recall: " + allInferredResult + "/" + allInferred + " = " + ((float) allInferredResult / allInferred));
+            logger.info("Micro recall: " + ((float) allInferredResult / allInferred));
+            logger.info("= " + allInferredResult + "/" + allInferred);
         }
         logger.info("Classes without inferred instances: " + (baseSet.size() - counter));
 
