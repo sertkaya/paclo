@@ -29,8 +29,8 @@ public class PACloOracle {
 
     public PACloOracle(String[] args) {
 
-        if (args.length != 8) {
-            logger.fatal("Usage: -ontology epsilon delta initialOntology expertOntology baseSetFile outputOntology [-u|-x]");
+        if (args.length < 7 || args.length > 9) {
+            logger.fatal("Usage: -ontology epsilon delta initialOntology expertOntology baseSetFile outputOntology [-upper] [-uniform]");
             System.exit(-1);
         }
 
@@ -73,10 +73,12 @@ public class PACloOracle {
 
         Set<OWLClassExpression> baseSet = Utils.readBaseSet(baseSetFile, initialOntology);
 
-        // SubsumptionSamplingOracle sampler = new RandomSubsumptionSampler(baseSet);
-        SubsumptionSamplingOracle sampler = new WeightedSubsumptionSampler(baseSet, initialOntologyReasoner, false);
+        SubsumptionSamplingOracle sampler = (args.length > 7 && args[args.length - 1].equals("-uniform"))?
+            new RandomSubsumptionSampler(baseSet) :
+            new WeightedSubsumptionSampler(baseSet, initialOntologyReasoner, false);
+
         Instant start = Instant.now();
-        ILearningFrameworkSubsumption framework = args[7].equals("-u") ?
+        ILearningFrameworkSubsumption framework = (args.length > 7 && args[7].equals("-upper")) ?
             new LearningFrameworkSubsumptionUpper(initialOntology, baseSet, expert, sampler, initialOntologyReasoner) :
             new LearningFrameworkSubsumption(initialOntology, baseSet, expert, sampler, initialOntologyReasoner);
         OWLOntology resultOntology = framework.approximation(epsilon, delta, resultOntologyIRI);
