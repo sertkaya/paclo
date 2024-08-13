@@ -2,30 +2,35 @@ package ontology.learning.oracle;
 
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
-// import org.semanticweb.HermiT.ReasonerFactory;
 import org.semanticweb.elk.owlapi.ElkReasonerFactory;
-import org.semanticweb.owlapi.apibinding.OWLManager;
 import org.semanticweb.owlapi.model.*;
 import org.semanticweb.owlapi.model.parameters.Imports;
 import org.semanticweb.owlapi.reasoner.InferenceType;
-import org.semanticweb.owlapi.reasoner.NodeSet;
 import org.semanticweb.owlapi.reasoner.OWLReasoner;
 import org.semanticweb.owlapi.reasoner.OWLReasonerFactory;
 
 import java.time.Duration;
 import java.time.Instant;
-import java.util.HashSet;
 import java.util.Set;
+import java.util.stream.Collectors;
+
 
 public class Evaluation {
     private Logger logger = LogManager.getLogger("OracleEvaluation");
 
     public void evaluate(OWLOntology resultOntology, OWLReasoner expertReasoner, Set<OWLClassExpression> baseSet, OWLReasoner initialOntologyReasoner) {
+        // NB: Removes disjointness axioms from resultOntology
 
         Instant start = Instant.now();
 
-        // resultOntology.add(expertReasoner.getRootOntology().getAxioms(AxiomType.CLASS_ASSERTION));
-        // resultOntology.add(expertReasoner.getRootOntology().getAxioms(AxiomType.OBJECT_PROPERTY_ASSERTION));
+
+        OWLOntologyManager manager = resultOntology.getOWLOntologyManager();
+        OWLClass owlNothing = manager.getOWLDataFactory().getOWLNothing();
+        Set<OWLSubClassOfAxiom> disjointnessAxioms = resultOntology.subClassAxiomsForSuperClass(owlNothing)
+                    .collect(Collectors.toSet());
+        System.out.println(disjointnessAxioms.size() + " disjointness axioms");
+        manager.removeAxioms(resultOntology, disjointnessAxioms);
+
         resultOntology.add(expertReasoner.getRootOntology().getABoxAxioms(Imports.INCLUDED));
 
         OWLReasonerFactory rf = new ElkReasonerFactory();
@@ -54,10 +59,12 @@ public class Evaluation {
          */
 
         start = Instant.now();
+        float sum_of_precisions = 0;
         float sum_of_recalls = 0;
         int counter = 0;
         int allInferred = 0;
         int allInferredResult = 0;
+        int allShared = 0;
         for (OWLClassExpression ce : baseSet) {
             // logger.info("ce:" + ce);
             // Set<OWLIndividual> instancesInitialOntology = new HashSet<OWLIndividual>();
@@ -70,29 +77,42 @@ public class Evaluation {
             Set<OWLNamedIndividual> instancesInitialOntology = initialOntologyReasoner.getInstances(ce).getFlattened();
             // logger.info("asserted:" + instancesInitialOntology);
             Set<OWLNamedIndividual> inferredIndividuals = expertReasoner.getInstances(ce, false).getFlattened();
+            Set<OWLNamedIndividual> inferredIndividualsResult = resultReasoner.getInstances(ce, false).getFlattened();
             // logger.info("inferred:" + inferredIndividuals);
             // take set difference
             // inferredIndividuals.removeAll(instancesInitialOntology);
-            if (!inferredIndividuals.isEmpty()) {
-                allInferred += inferredIndividuals.size();
+            if (!inferredIndividuals.isEmpty() || !inferredIndividualsResult.isEmpty()) {
                 logger.info("ce:" + ce);
-                Set<OWLNamedIndividual> inferredIndividualsResult = resultReasoner.getInstances(ce, false).getFlattened();
-                // inferredIndividualsResult.removeAll(instancesInitialOntology);
-                assert inferredIndividuals.containsAll(inferredIndividualsResult);
+                allInferred += inferredIndividuals.size();
                 allInferredResult += inferredIndividualsResult.size();
-                float recall = (float) inferredIndividualsResult.size() / inferredIndividuals.size();
-                logger.info(inferredIndividualsResult.size() + "/" + inferredIndividuals.size() + " = " + recall);
+
+                // Set<OWLNamedIndividual> shared = new HashSet<>(allInferred);
+                // shared.retainAll(inferredIndividualsResult);
+                Set<OWLNamedIndividual> shared = inferredIndividuals.stream()
+                        .filter(ind -> inferredIndividualsResult.stream().anyMatch(ind2 -> ind.getIRI().equals(ind2.getIRI())))
+                        .collect(Collectors.toSet());
+                allShared += shared.size();
+
+                float precision = inferredIndividualsResult.size() > 0 ? (float) shared.size() / inferredIndividualsResult.size() : 1;
+                logger.info("Precision = " + shared.size() + "/" + inferredIndividualsResult.size() + " = " + precision);
+                sum_of_precisions += precision;
+
+                float recall = inferredIndividuals.size() > 0 ? (float) shared.size() / inferredIndividuals.size() : 1;
+                logger.info("Recall = " + shared.size() + "/" + inferredIndividuals.size() + " = " + recall);
                 sum_of_recalls += recall;
+
                 ++counter;
             }
         }
         logger.info("Classes with inferred instances: " + counter);
         if (counter > 0) {
-            // logger.info("quality:" + quality);
-            // logger.info("counter:" + counter);
+            logger.info("Macro precision: " + (sum_of_precisions / counter));
             logger.info("Macro recall: " + (sum_of_recalls / counter));
-            logger.info("Micro recall: " + ((float) allInferredResult / allInferred));
-            logger.info("= " + allInferredResult + "/" + allInferred);
+
+            logger.info("Micro precision: " + ((float) allShared / allInferredResult));
+            logger.info("= " + allShared + "/" + allInferredResult);
+            logger.info("Micro recall: " + ((float) allShared / allInferred));
+            logger.info("= " + allShared + "/" + allInferred);
         }
         logger.info("Classes without inferred instances: " + (baseSet.size() - counter));
 

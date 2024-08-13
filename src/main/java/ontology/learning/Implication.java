@@ -24,7 +24,7 @@ public class Implication {
 			premiseExpr = df.getOWLThing();
 		else
 			premiseExpr = df.getOWLObjectIntersectionOf(premise);
-		OWLClassExpression conclusionExpr = df.getOWLObjectIntersectionOf(conclusion);
+		OWLClassExpression conclusionExpr = conclusion.size() > 1 ? df.getOWLObjectIntersectionOf(conclusion) : conclusion.iterator().next();
 		OWLSubClassOfAxiom gci = df.getOWLSubClassOfAxiom(premiseExpr, conclusionExpr);
 		return(gci);
 	}

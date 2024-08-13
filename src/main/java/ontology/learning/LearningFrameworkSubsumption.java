@@ -151,13 +151,17 @@ public class LearningFrameworkSubsumption implements ILearningFrameworkSubsumpti
 		if (ex == null) {
 			OWLOntology ontology = null;
 			try {
-				ontology = om.copyOntology(initialOntology, OntologyCopy.SHALLOW);
+				OWLOntologyManager newManager = OWLManager.createConcurrentOWLOntologyManager();
+				ontology = newManager.copyOntology(initialOntology, OntologyCopy.SHALLOW);
 			} catch (OWLOntologyCreationException e) {
 				logger.fatal("Can't update sampler (error creating ontology): " + e.getMessage());
 				return null;
 			}
+			OWLClass owlNothing = df.getOWLNothing();
 			for (Implication i : imps) {
-				ontology.add(i.toGCI());
+				if (!i.getConclusion().contains(owlNothing)) {	// NB! This is to ensure consistency.
+					ontology.add(i.toGCI());
+				}
 			}
 			sampler.update_sampler(new ElkReasonerFactory().createReasoner(ontology));
 			ex = searchForCounterExample(imps, k);
@@ -291,8 +295,16 @@ public class LearningFrameworkSubsumption implements ILearningFrameworkSubsumpti
         }
 
 		int axiomCount = 0;
-        for (int i = 0; i < imps.size(); ++i) {
-			OWLSubClassOfAxiom ax = imps.get(i).toGCI();
+		OWLClass owlNothing = df.getOWLNothing();
+        for (Implication i : imps) {
+			Set<OWLClassExpression> conclusion = i.getConclusion();
+			if (conclusion.contains(owlNothing)) {
+				conclusion.clear();
+				conclusion.add(owlNothing);
+			} else {
+				conclusion.removeAll(i.getPremise());
+			}
+			OWLSubClassOfAxiom ax = i.toGCI();
 			if (this.initialReasoner.isEntailed(ax)) {
 				logger.debug("Did not add axiom: " + ax);
 			} else {
