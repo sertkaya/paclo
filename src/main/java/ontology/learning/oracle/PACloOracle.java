@@ -1,7 +1,9 @@
 package ontology.learning.oracle;
 
 import ontology.learning.ExpertOracle;
+import ontology.learning.ILearningFrameworkSubsumption;
 import ontology.learning.LearningFrameworkSubsumption;
+import ontology.learning.LearningFrameworkSubsumptionUpper;
 import ontology.learning.sampler.RandomSubsumptionSampler;
 import ontology.learning.sampler.SubsumptionSamplingOracle;
 import ontology.learning.sampler.WeightedSubsumptionSampler;
@@ -27,8 +29,8 @@ public class PACloOracle {
 
     public PACloOracle(String[] args) {
 
-        if (args.length != 7) {
-            logger.fatal("Usage: -ontology epsilon delta initialOntology expertOntology baseSetFile outputOntology");
+        if (args.length != 8) {
+            logger.fatal("Usage: -ontology epsilon delta initialOntology expertOntology baseSetFile outputOntology [-u|-x]");
             System.exit(-1);
         }
 
@@ -74,8 +76,10 @@ public class PACloOracle {
         // SubsumptionSamplingOracle sampler = new RandomSubsumptionSampler(baseSet);
         SubsumptionSamplingOracle sampler = new WeightedSubsumptionSampler(baseSet, initialOntologyReasoner, false);
         Instant start = Instant.now();
-        LearningFrameworkSubsumption framework = new LearningFrameworkSubsumption(initialOntology, baseSet, expert, sampler, initialOntologyReasoner);
-        OWLOntology resultOntology = framework.upperApproximation(epsilon, delta, resultOntologyIRI);
+        ILearningFrameworkSubsumption framework = args[7].equals("-u") ?
+            new LearningFrameworkSubsumptionUpper(initialOntology, baseSet, expert, sampler, initialOntologyReasoner) :
+            new LearningFrameworkSubsumption(initialOntology, baseSet, expert, sampler, initialOntologyReasoner);
+        OWLOntology resultOntology = framework.approximation(epsilon, delta, resultOntologyIRI);
 
         Instant finish = Instant.now();
         long timeElapsed = Duration.between(start, finish).toMillis();

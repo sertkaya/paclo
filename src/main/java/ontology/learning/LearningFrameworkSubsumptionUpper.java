@@ -8,11 +8,12 @@ import org.apache.logging.log4j.Logger;
 import org.semanticweb.elk.owlapi.ElkReasonerFactory;
 import org.semanticweb.owlapi.apibinding.OWLManager;
 import org.semanticweb.owlapi.formats.OWLXMLDocumentFormat;
+import org.semanticweb.owlapi.io.OWLOntologyDocumentTarget;
 import org.semanticweb.owlapi.model.*;
 import org.semanticweb.owlapi.model.parameters.OntologyCopy;
+import org.semanticweb.owlapi.reasoner.InferenceType;
 import org.semanticweb.owlapi.reasoner.OWLReasoner;
-
-import com.fasterxml.jackson.databind.cfg.ContextAttributes.Impl;
+import org.semanticweb.owlapi.reasoner.OWLReasonerFactory;
 
 import java.util.ArrayList;
 import java.util.HashSet;
@@ -21,13 +22,15 @@ import java.util.Set;
 
 
 // with subsumption queries
-public class LearningFrameworkSubsumption implements ILearningFrameworkSubsumption {
+public class LearningFrameworkSubsumptionUpper implements ILearningFrameworkSubsumption {
 
 	private OWLOntology initialOntology;
+	private OWLOntology auxiliaryOntology;
 	private OWLOntologyManager om;
 	private OWLDataFactory df;
 	// private OWLReasonerFactory rf;
 	private OWLReasoner initialReasoner;
+	private OWLReasoner auxiliaryReasoner;
 
 	private Set<OWLClassExpression> baseSet;
 	private ExpertOracle expert;
@@ -46,7 +49,7 @@ public class LearningFrameworkSubsumption implements ILearningFrameworkSubsumpti
 	 * @param expert: The domain expert
 	 * @param sampler: Sampling oracle
 	 */
-	public LearningFrameworkSubsumption(// IRI initialOntologyIRI,
+	public LearningFrameworkSubsumptionUpper(// IRI initialOntologyIRI,
 										OWLOntology initialOntology,
 										Set<OWLClassExpression> baseSet,
 										ExpertOracle expert,
@@ -80,6 +83,15 @@ public class LearningFrameworkSubsumption implements ILearningFrameworkSubsumpti
 		
 		this.expertQueries = 0;
 		this.invalidImplications = null;
+
+		try {
+			auxiliaryOntology = om.copyOntology(initialOntology, OntologyCopy.SHALLOW);
+		} catch (OWLOntologyCreationException e) {
+			logger.fatal("Error creating auxiliary ontology");
+			System.exit(-1);
+		}
+		// auxiliaryReasoner = new ReasonerFactory().createReasoner(auxiliaryOntology);
+		auxiliaryReasoner = new ElkReasonerFactory().createReasoner(auxiliaryOntology);
 	}
 
 	private boolean isImplicationValid(Set<OWLClassExpression> premise, OWLClassExpression conclusion) {
@@ -125,44 +137,39 @@ public class LearningFrameworkSubsumption implements ILearningFrameworkSubsumpti
 		return(closure);
 	}
 
-	private Set<OWLClassExpression> searchForCounterExample(ArrayList<Implication> imps, int k) {
+	private Set<OWLClassExpression> getCounterExample(ArrayList<Implication> imps, int k) {
+		int samples = 0;
 		for (int i = 0; i < k; ++i) {
 			Pair<Set<OWLClassExpression>, OWLClassExpression>  query = this.sampler.sample();
-			samplerQueries++;
 
+			samples++;
+			samplerQueries++;
+            Set<OWLClassExpression> premise = query.getKey();
+			Set<OWLClassExpression> closure = implicationClosure(imps, premise);
+            if (!closure.contains(df.getOWLNothing()) && !closure.contains(query.getValue()) && isImplicationValid(premise, query.getValue())) {
+                // logger.info("Samples at this iteration: " + samples);
+                return closure;
+			}
+		}
+		// logger.info("Generated " + samples + " samples");
+		auxiliaryReasoner.flush();
+		sampler.update_sampler(auxiliaryReasoner);
+
+
+		for (int i = 0; i < k; ++i) {
+			Pair<Set<OWLClassExpression>, OWLClassExpression>  query = this.sampler.sample();
+
+			samples++;
+			samplerQueries++;
 			Set<OWLClassExpression> premise = query.getKey();
 			Set<OWLClassExpression> closure = implicationClosure(imps, premise);
-			boolean hypothesis = closure.contains(df.getOWLNothing()) || closure.contains(query.getValue());
-
-			if (isImplicationValid(premise, query.getValue())) {
-				if (!hypothesis) {
-					return closure;
-				}
-			} else if (hypothesis) {
-				return complete(premise);
+			if (!closure.contains(df.getOWLNothing()) && !closure.contains(query.getValue()) && isImplicationValid(premise, query.getValue())) {
+				// logger.info("Samples at this iteration: " + samples);
+				return closure;
 			}
 		}
+
 		return null;
-	}
-
-	
-	private Set<OWLClassExpression> getCounterExample(ArrayList<Implication> imps, int k) {
-		Set<OWLClassExpression> ex = searchForCounterExample(imps, k);
-		if (ex == null) {
-			OWLOntology ontology = null;
-			try {
-				ontology = om.copyOntology(initialOntology, OntologyCopy.SHALLOW);
-			} catch (OWLOntologyCreationException e) {
-				logger.fatal("Can't update sampler (error creating ontology): " + e.getMessage());
-				return null;
-			}
-			for (Implication i : imps) {
-				ontology.add(i.toGCI());
-			}
-			sampler.update_sampler(new ElkReasonerFactory().createReasoner(ontology));
-			ex = searchForCounterExample(imps, k);
-		}
-		return ex;
 	}
 	
 	/**
@@ -200,33 +207,11 @@ public class LearningFrameworkSubsumption implements ILearningFrameworkSubsumpti
 		return(completion);
 	}
 	
-	public boolean isComplete(Set<OWLClassExpression> s) {
-		OWLClassExpression sConjunction;
-		if (s.isEmpty()) {
-			sConjunction = df.getOWLThing();
-		} else {
-			sConjunction = this.df.getOWLObjectIntersectionOf(s);
-		}
-		
-		if (sConjunction.isBottomEntity()) {
-			return true;
-		} else if (isImplicationValid(s, df.getOWLNothing())) {
-			return false;
-		}
-
-		for (OWLClassExpression c : baseSet) {
-			if (!s.contains(c) && isImplicationValid(s, c)) {
-				return false;
-			}
-		}
-		
-		return true;
-	}
 	/**
-	 * Computes an approximation of expert's view of the domain.
+	 * Computes an upper approximation of expert's view of the domain.
 	 */
 	public OWLOntology approximation(double epsilon, double delta, IRI resultOntologyIRI) {
-		System.out.println("NOT UPPER");
+		System.out.println("UPPER");
 		expertQueries = 0;
 		ArrayList<Implication> imps = new ArrayList<Implication>();
 		Set<OWLClassExpression> counterExample;
@@ -243,42 +228,51 @@ public class LearningFrameworkSubsumption implements ILearningFrameworkSubsumpti
 		while ((counterExample = getCounterExample(imps, callsToSamplingOracle(epsilon, delta, iteration))) != null) { 
 			logger.info("iteration:" + iteration);
 			logger.info("expert queries:" + this.expertQueries);
-			if (implicationClosure(imps, counterExample).equals(counterExample)) {
-				logger.info("negative counterexample");
-				found = false;
-				for (Implication imp : imps) {
-					if (!counterExample.containsAll(imp.getPremise())) {
-						Set<OWLClassExpression> newPremise = new HashSet<OWLClassExpression>(imp.getPremise());
-						newPremise.retainAll(counterExample);					
-						if (!isComplete(newPremise)) {
-							// update the implication
-							imp.getPremise().retainAll(counterExample);
+			// logger.info("implications:" + imps.size());
+			found = false;
+			Implication imp = null;
+			for (int i = 0; i < imps.size(); i++) {
+				imp = imps.get(i);
+				if (!counterExample.containsAll(imp.getPremise())) {
+					Set<OWLClassExpression> newPremise = new HashSet<OWLClassExpression>(imp.getPremise());
+					newPremise.retainAll(counterExample);
+				
+					Set<OWLClassExpression> newConclusion = new HashSet<OWLClassExpression>(complete(newPremise));
+					if (!newPremise.equals(newConclusion)) {
+						// construct the new implication
+						newConclusion.removeAll(newPremise);
+						Implication newImp = new Implication(newPremise, newConclusion, df);
+						
+						// replace imp with the newImp
+						imps.set(i, newImp);
+
+						auxiliaryOntology.add(newImp.toGCI());
+						// System.out.println("Added axiom: " + newImp.toGCI());
+
+						// if (counterExample.containsAll(newConclusion)) {
 							found = true;
 							break;
-						}
-					}
-				}
-				if (!found) {
-					Set<OWLClassExpression> newConclusion = new HashSet<OWLClassExpression>(baseSet);
-					newConclusion.add(df.getOWLNothing());
-					// construct a new implication
-					Implication newImp = new Implication(counterExample, newConclusion, df);
-					if (imps.add(newImp)) {
-						logger.debug("Added implication: " + newImp);
-					} else {
-						logger.error("Could not add implication: " + newImp);
-					}
-				}
-			} else {
-				logger.info("positive counterexample");
-				System.out.println(imps.size());
-				for (Implication imp : imps) {
-					if (counterExample.containsAll(imp.getPremise())) {
-						imp.getConclusion().retainAll(counterExample);
+						// }
 					}
 				}
 			}
+			if (!found) {
+				Set<OWLClassExpression> newConclusion = new HashSet<OWLClassExpression>(complete(counterExample));
+				// construct the new implication
+				newConclusion.removeAll(counterExample);
+				Implication newImp = new Implication(counterExample, newConclusion, df);
+				if (imps.add(newImp)) {
+					logger.debug("Added implication: " + newImp);
+					auxiliaryOntology.add(newImp.toGCI());
+					// System.out.println("Added axiom: " + newImp.toGCI());
+				} else {
+					logger.error("Could not add implication: " + newImp);
+
+				}
+			}
 			++iteration;
+			// auxiliaryReasoner.flush();
+			// sampler.update_sampler(auxiliaryReasoner);
 		}
 
 		OWLOntology resultOntology = null;
@@ -316,6 +310,7 @@ public class LearningFrameworkSubsumption implements ILearningFrameworkSubsumpti
 		}
 
 		// initialReasoner.dispose();
+		auxiliaryReasoner.dispose();
 		return(resultOntology);
 	}
 }

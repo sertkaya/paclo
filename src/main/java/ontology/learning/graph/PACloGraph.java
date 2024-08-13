@@ -1,7 +1,7 @@
 package ontology.learning.graph;
 
 import ontology.learning.ExpertOracle;
-import ontology.learning.LearningFrameworkSubsumption;
+import ontology.learning.LearningFrameworkSubsumptionUpper;
 import ontology.learning.sampler.RandomSubsumptionSampler;
 import ontology.learning.sampler.SubsumptionSamplingOracle;
 import ontology.learning.utils.Utils;
@@ -68,9 +68,9 @@ public class PACloGraph {
         SubsumptionSamplingOracle sampler = new RandomSubsumptionSampler(baseSet);
         // SamplingOracle sampler = new RandomSampler(baseSet);
 
-        LearningFrameworkSubsumption framework = new LearningFrameworkSubsumption(initialOntology, baseSet, expert, sampler, initialOntologyReasoner);
+        LearningFrameworkSubsumptionUpper framework = new LearningFrameworkSubsumptionUpper(initialOntology, baseSet, expert, sampler, initialOntologyReasoner);
         // LearningFrameworkCompletion pacCompletion = new LearningFrameworkCompletion(initialOntology, baseSet, expert, sampler, om, reasoner);
-        framework.upperApproximation(epsilon, delta, resultOntologyIRI);
+        framework.approximation(epsilon, delta, resultOntologyIRI);
 
         Instant finish = Instant.now();
         long timeElapsed = Duration.between(start, finish).toMillis();
