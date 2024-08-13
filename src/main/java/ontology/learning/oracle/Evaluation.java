@@ -96,23 +96,23 @@ public class Evaluation {
                 sum_of_precisions += precision;
 
                 float recall = inferredIndividuals.size() > 0 ? (float) shared.size() / inferredIndividuals.size() : 1;
-                logger.info("Recall = " + shared.size() + "/" + inferredIndividuals.size() + " = " + recall);
+                logger.info("Recall = " + shared.size() + "/" + inferredIndividuals.size() + " = " + recall + '\n');
                 sum_of_recalls += recall;
 
                 ++counter;
             }
         }
-        logger.info("Classes with inferred instances: " + counter);
+        logger.info("Classes with inferred instances: " + counter + '\n');
         if (counter > 0) {
             logger.info("Macro precision: " + (sum_of_precisions / counter));
-            logger.info("Macro recall: " + (sum_of_recalls / counter));
+            logger.info("Macro recall: " + (sum_of_recalls / counter) + '\n');
 
             logger.info("Micro precision: " + ((float) allShared / allInferredResult));
             logger.info("= " + allShared + "/" + allInferredResult);
             logger.info("Micro recall: " + ((float) allShared / allInferred));
-            logger.info("= " + allShared + "/" + allInferred);
+            logger.info("= " + allShared + "/" + allInferred + '\n');
         }
-        logger.info("Classes without inferred instances: " + (baseSet.size() - counter));
+        logger.info("Classes without inferred instances: " + (baseSet.size() - counter) + '\n');
 
         finish = Instant.now();
         timeElapsed = Duration.between(start, finish).toMillis();
