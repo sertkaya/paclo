@@ -11,6 +11,7 @@ import org.semanticweb.owlapi.reasoner.OWLReasonerFactory;
 
 import java.time.Duration;
 import java.time.Instant;
+import java.util.HashSet;
 import java.util.Set;
 import java.util.stream.Collectors;
 
@@ -86,11 +87,8 @@ public class Evaluation {
                 allInferred += inferredIndividuals.size();
                 allInferredResult += inferredIndividualsResult.size();
 
-                // Set<OWLNamedIndividual> shared = new HashSet<>(allInferred);
-                // shared.retainAll(inferredIndividualsResult);
-                Set<OWLNamedIndividual> shared = inferredIndividuals.stream()
-                        .filter(ind -> inferredIndividualsResult.stream().anyMatch(ind2 -> ind.getIRI().equals(ind2.getIRI())))
-                        .collect(Collectors.toSet());
+                Set<OWLNamedIndividual> shared = new HashSet<OWLNamedIndividual>(inferredIndividuals);
+                shared.retainAll(inferredIndividualsResult);
                 allShared += shared.size();
 
                 float precision = inferredIndividualsResult.size() > 0 ? (float) shared.size() / inferredIndividualsResult.size() : 1;
