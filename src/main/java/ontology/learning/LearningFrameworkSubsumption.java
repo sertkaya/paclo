@@ -12,7 +12,6 @@ import org.semanticweb.owlapi.model.*;
 import org.semanticweb.owlapi.model.parameters.OntologyCopy;
 import org.semanticweb.owlapi.reasoner.OWLReasoner;
 
-import com.fasterxml.jackson.databind.cfg.ContextAttributes.Impl;
 
 import java.util.ArrayList;
 import java.util.HashSet;
@@ -230,7 +229,7 @@ public class LearningFrameworkSubsumption implements ILearningFrameworkSubsumpti
 	 * Computes an approximation of expert's view of the domain.
 	 */
 	public OWLOntology approximation(double epsilon, double delta, IRI resultOntologyIRI) {
-		System.out.println("NOT UPPER");
+		logger.info("GENERAL APPROXIMATION");
 		expertQueries = 0;
 		ArrayList<Implication> imps = new ArrayList<Implication>();
 		Set<OWLClassExpression> counterExample;
@@ -248,7 +247,6 @@ public class LearningFrameworkSubsumption implements ILearningFrameworkSubsumpti
 			logger.info("iteration:" + iteration);
 			logger.info("expert queries:" + this.expertQueries);
 			if (implicationClosure(imps, counterExample).equals(counterExample)) {
-				logger.info("negative counterexample");
 				found = false;
 				for (Implication imp : imps) {
 					if (!counterExample.containsAll(imp.getPremise())) {
@@ -274,8 +272,6 @@ public class LearningFrameworkSubsumption implements ILearningFrameworkSubsumpti
 					}
 				}
 			} else {
-				logger.info("positive counterexample");
-				System.out.println(imps.size());
 				for (Implication imp : imps) {
 					if (counterExample.containsAll(imp.getPremise())) {
 						imp.getConclusion().retainAll(counterExample);
@@ -328,6 +324,6 @@ public class LearningFrameworkSubsumption implements ILearningFrameworkSubsumpti
 		}
 
 		// initialReasoner.dispose();
-		return(resultOntology);
+		return resultOntology;
 	}
 }

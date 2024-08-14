@@ -138,11 +138,11 @@ public class LearningFrameworkSubsumptionUpper implements ILearningFrameworkSubs
 	}
 
 	private Set<OWLClassExpression> getCounterExample(ArrayList<Implication> imps, int k) {
-		int samples = 0;
+		// int samples = 0;
 		for (int i = 0; i < k; ++i) {
 			Pair<Set<OWLClassExpression>, OWLClassExpression>  query = this.sampler.sample();
 
-			samples++;
+		//	samples++;
 			samplerQueries++;
             Set<OWLClassExpression> premise = query.getKey();
 			Set<OWLClassExpression> closure = implicationClosure(imps, premise);
@@ -159,7 +159,7 @@ public class LearningFrameworkSubsumptionUpper implements ILearningFrameworkSubs
 		for (int i = 0; i < k; ++i) {
 			Pair<Set<OWLClassExpression>, OWLClassExpression>  query = this.sampler.sample();
 
-			samples++;
+		//	samples++;
 			samplerQueries++;
 			Set<OWLClassExpression> premise = query.getKey();
 			Set<OWLClassExpression> closure = implicationClosure(imps, premise);
@@ -211,7 +211,7 @@ public class LearningFrameworkSubsumptionUpper implements ILearningFrameworkSubs
 	 * Computes an upper approximation of expert's view of the domain.
 	 */
 	public OWLOntology approximation(double epsilon, double delta, IRI resultOntologyIRI) {
-		System.out.println("UPPER");
+		System.out.println("UPPER APPROXIMATION");
 		expertQueries = 0;
 		ArrayList<Implication> imps = new ArrayList<Implication>();
 		Set<OWLClassExpression> counterExample;
