@@ -153,7 +153,7 @@ public class LearningFrameworkSubsumptionUpper implements ILearningFrameworkSubs
 		}
 		// logger.info("Generated " + samples + " samples");
 		auxiliaryReasoner.flush();
-		sampler.update_sampler(auxiliaryReasoner);
+		sampler.update_sampler(auxiliaryReasoner, true);
 
 
 		for (int i = 0; i < k; ++i) {

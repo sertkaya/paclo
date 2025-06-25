@@ -162,7 +162,7 @@ public class LearningFrameworkSubsumption implements ILearningFrameworkSubsumpti
 					ontology.add(i.toGCI());
 				}
 			}
-			sampler.update_sampler(new ElkReasonerFactory().createReasoner(ontology));
+			sampler.update_sampler(new ElkReasonerFactory().createReasoner(ontology), false);
 			ex = searchForCounterExample(imps, k);
 		}
 		return ex;

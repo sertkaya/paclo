@@ -50,7 +50,7 @@ public class WeightedSubsumptionSampler implements SubsumptionSamplingOracle {
 	public WeightedSubsumptionSampler(Set<OWLClassExpression> baseSet, OWLReasoner initialOntologyReasoner, boolean uniform_conclusions) {
 		this.baseSet = baseSet;
 		this.uniform_conclusions = uniform_conclusions;
-		update_sampler(initialOntologyReasoner);
+		update_sampler(initialOntologyReasoner, true);
 	}
 	
 	public WeightedSubsumptionSampler(Set<OWLClassExpression> baseSet, OWLReasoner initialOntologyReasoner) {
@@ -62,7 +62,7 @@ public class WeightedSubsumptionSampler implements SubsumptionSamplingOracle {
 		return new Pair<>(premise, sampleConclusion(premise));
 	}
 
-	public void update_sampler(OWLReasoner reasoner) {
+	public void update_sampler(OWLReasoner reasoner, boolean updateConclusion) {
 		logger.debug("Update starting");
 		instanceTypes = new HashMap<OWLNamedIndividual, ArrayList<OWLClassExpression>>();
 		for (OWLClassExpression ce : baseSet) {
@@ -71,7 +71,9 @@ public class WeightedSubsumptionSampler implements SubsumptionSamplingOracle {
 			if (instances.size() > 0)
 				logger.debug(ce + ":" + instances.size());
 			// System.out.println(instances.size());
-			instanceCounts.put(ce, instances.size());
+			if (updateConclusion) {
+				instanceCounts.put(ce, instances.size());
+			}
 			for (OWLNamedIndividual ind : instances) {
 				if (instanceTypes.containsKey(ind)) {
 					instanceTypes.get(ind).add(ce);

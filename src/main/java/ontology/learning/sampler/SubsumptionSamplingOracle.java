@@ -8,5 +8,5 @@ import org.semanticweb.owlapi.reasoner.OWLReasoner;
 
 public interface SubsumptionSamplingOracle {
     public Pair<Set<OWLClassExpression>, OWLClassExpression> sample();
-    public void update_sampler(OWLReasoner reasoner);
+    public void update_sampler(OWLReasoner reasoner, boolean updateConclusion);
 }

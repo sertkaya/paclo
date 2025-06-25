@@ -45,5 +45,5 @@ public class RandomSubsumptionSampler implements SubsumptionSamplingOracle {
 		throw new IllegalStateException("Error in sampling.");
 	}
 
-	public void update_sampler(OWLReasoner reasoner) {}
+	public void update_sampler(OWLReasoner reasoner, boolean updateConclusion) {}
 }
