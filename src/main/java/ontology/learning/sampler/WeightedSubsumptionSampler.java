@@ -44,7 +44,7 @@ public class WeightedSubsumptionSampler implements SubsumptionSamplingOracle {
 
 	public WeightedSubsumptionSampler(Set<OWLClassExpression> baseSet, OWLReasoner initialOntologyReasoner, boolean uniform_conclusions) {
 		this.baseSet = baseSet;
-		this.uniform_conclusions = true; // uniform_conclusions;
+		this.uniform_conclusions = uniform_conclusions;
 		numberOfInstances = initialOntologyReasoner.getRootOntology().getIndividualsInSignature().size();
 		update_sampler(initialOntologyReasoner, true);
 	}
