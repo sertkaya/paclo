@@ -30,6 +30,9 @@ public class Evaluation {
         Set<OWLSubClassOfAxiom> disjointnessAxioms = resultOntology.subClassAxiomsForSuperClass(owlNothing)
                     .collect(Collectors.toSet());
         System.out.println(disjointnessAxioms.size() + " disjointness axioms");
+        for (OWLSubClassOfAxiom a : disjointnessAxioms) {
+            System.out.println(a);
+        }
         manager.removeAxioms(resultOntology, disjointnessAxioms);
 
         resultOntology.add(expertReasoner.getRootOntology().getABoxAxioms(Imports.INCLUDED));
@@ -60,6 +63,27 @@ public class Evaluation {
          */
 
         start = Instant.now();
+
+        for (OWLSubClassOfAxiom axiom : resultOntology.getAxioms(AxiomType.SUBCLASS_OF)) {
+            logger.info("***Subclass Axiom***");
+
+            OWLClassExpression subClass = axiom.getSubClass();
+            logger.info("Subclass: " + subClass);
+            Set<OWLNamedIndividual> subClassIndividuals = expertReasoner.getInstances(subClass, false).getFlattened();
+
+            OWLClassExpression superClass = axiom.getSuperClass();
+            logger.info("Superclass: " + superClass);
+            Set<OWLNamedIndividual> superClassIndividuals = expertReasoner.getInstances(superClass, false).getFlattened();
+
+            Set<OWLNamedIndividual> intersection = new HashSet<>(subClassIndividuals);
+            intersection.retainAll(superClassIndividuals);
+            
+            float confidence = intersection.size() > 0 ? (float) intersection.size() / subClassIndividuals.size() : 1;
+            logger.info("Confidence = " + intersection.size() + "/" + subClassIndividuals.size() + " = " + confidence);
+        }
+        logger.info("*********\n");
+
+
         float sum_of_precisions = 0;
         float sum_of_recalls = 0;
         int counter = 0;
