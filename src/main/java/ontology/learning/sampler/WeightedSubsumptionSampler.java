@@ -2,20 +2,12 @@ package ontology.learning.sampler;
 
 import javafx.util.Pair;
 
-import org.apache.commons.lang3.ObjectUtils.Null;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
-import org.eclipse.rdf4j.model.vocabulary.OWL;
 // import org.semanticweb.HermiT.ReasonerFactory;
-import org.semanticweb.owlapi.apibinding.OWLManager;
 import org.semanticweb.owlapi.model.*;
-import org.semanticweb.owlapi.model.parameters.Imports;
-import org.semanticweb.owlapi.reasoner.InferenceType;
 import org.semanticweb.owlapi.reasoner.OWLReasoner;
-import org.semanticweb.owlapi.reasoner.OWLReasonerFactory;
 
-import java.time.Duration;
-import java.time.Instant;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
@@ -24,6 +16,8 @@ import java.util.HashSet;
 import java.util.Map;
 import java.util.Random;
 import java.util.Set;
+
+import java.math.BigInteger;
 
 public class WeightedSubsumptionSampler implements SubsumptionSamplingOracle {
 	private Logger logger = LogManager.getLogger("WeightedSubsumptionSampler");
@@ -39,8 +33,9 @@ public class WeightedSubsumptionSampler implements SubsumptionSamplingOracle {
 	private HashMap<OWLNamedIndividual, ArrayList<OWLClassExpression>> instanceTypes;
 
 	private OWLNamedIndividual[] instanceNames;
-	private long[] instanceWeights;
-	private long cumulativeInstanceWeight;
+	private BigInteger[] instanceWeights;
+	private BigInteger cumulativeInstanceWeight = BigInteger.ZERO;
+	private long numberOfInstances;
 
 	private boolean uniform_conclusions = false;
 
@@ -49,7 +44,8 @@ public class WeightedSubsumptionSampler implements SubsumptionSamplingOracle {
 
 	public WeightedSubsumptionSampler(Set<OWLClassExpression> baseSet, OWLReasoner initialOntologyReasoner, boolean uniform_conclusions) {
 		this.baseSet = baseSet;
-		this.uniform_conclusions = uniform_conclusions;
+		this.uniform_conclusions = true; // uniform_conclusions;
+		numberOfInstances = initialOntologyReasoner.getRootOntology().getIndividualsInSignature().size();
 		update_sampler(initialOntologyReasoner, true);
 	}
 	
@@ -63,7 +59,12 @@ public class WeightedSubsumptionSampler implements SubsumptionSamplingOracle {
 	}
 
 	public void update_sampler(OWLReasoner reasoner, boolean updateConclusion) {
-		logger.debug("Update starting");
+		logger.info("Update starting");
+		if (updateConclusion) {
+			logger.info("Update conclusions");
+		} else {
+			logger.info("Do not update conclusions");
+		}
 		instanceTypes = new HashMap<OWLNamedIndividual, ArrayList<OWLClassExpression>>();
 		for (OWLClassExpression ce : baseSet) {
 			// System.out.print(ce + ": ");
@@ -84,19 +85,24 @@ public class WeightedSubsumptionSampler implements SubsumptionSamplingOracle {
 		}
 
 		instanceNames = new OWLNamedIndividual [instanceTypes.size()];
-		instanceWeights = new long [instanceTypes.size()];
+		instanceWeights = new BigInteger [instanceTypes.size()];
 
 		int i = 0;
-		cumulativeInstanceWeight = 0;
+		cumulativeInstanceWeight = BigInteger.ZERO;
 		for (Map.Entry<OWLNamedIndividual, ArrayList<OWLClassExpression>> entry : instanceTypes.entrySet()) {
 			instanceNames[i] = entry.getKey();
-			assert cumulativeInstanceWeight + (1 << entry.getValue().size()) > cumulativeInstanceWeight :
-																				"Weights are too large.";
-			cumulativeInstanceWeight += (1 << entry.getValue().size());
+			//assert cumulativeInstanceWeight + (1 << entry.getValue().size()) > cumulativeInstanceWeight :
+			//																	"Weights are too large.";
+			// cumulativeInstanceWeight += (1 << entry.getValue().size());
+			cumulativeInstanceWeight = cumulativeInstanceWeight.add(BigInteger.ONE.shiftLeft(entry.getValue().size()));
 			instanceWeights[i++] = cumulativeInstanceWeight;
 		}
-		logger.debug("cumulative instance weight:" + cumulativeInstanceWeight);
-		logger.debug("Update finished");
+		logger.info("cumulative instance weight:" + cumulativeInstanceWeight);
+		logger.info("Update finished");
+		logger.info("Instances: " + numberOfInstances);
+//		for (OWLClassExpression ce : baseSet) {
+//			logger.info(ce + ": " + (numberOfInstances - instanceCounts.get(ce)));
+//		}
 	}
 
 	private Set<OWLClassExpression> samplePremise() {
@@ -125,17 +131,30 @@ public class WeightedSubsumptionSampler implements SubsumptionSamplingOracle {
 		long[] weights = new long[types.length];
 		long total = 0;
 		for (int i = 0; i < types.length; ++i) {
-			total += (instanceNames.length - instanceCounts.get(types[i]));
+			total += (numberOfInstances - instanceCounts.get(types[i]));
 			weights[i] = total;
 		}
 
 		return types[getRandomIndex(weights, total)];
 	}
 
-
-
 	private static int getRandomIndex(long[] weights, long total) {
 		int index = Math.abs(Arrays.binarySearch(weights, Math.abs(rd.nextLong()) % total) + 1);
+		if (index == weights.length)
+			index--;
+		while (index > 0 && weights[index] == weights[index - 1]) {
+			index--;
+		}
+		return index; // TODO: Check if this is correct.
+	}
+
+	private static int getRandomIndex(BigInteger[] weights, BigInteger total) {
+		BigInteger r;
+		do {
+			r = new BigInteger(total.bitLength(), rd);
+		} while (r.compareTo(total) >= 0);
+		// int index = Math.abs(Arrays.binarySearch(weights, Math.abs(rd.nextLong()) % total) + 1);
+		int index = Math.abs(Arrays.binarySearch(weights, r) + 1);
 		if (index == weights.length)
 			index--;
 		while (index > 0 && weights[index] == weights[index - 1]) {
