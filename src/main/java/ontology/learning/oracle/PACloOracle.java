@@ -6,7 +6,8 @@ import ontology.learning.LearningFrameworkSubsumption;
 import ontology.learning.LearningFrameworkSubsumptionUpper;
 import ontology.learning.sampler.RandomSubsumptionSampler;
 import ontology.learning.sampler.SubsumptionSamplingOracle;
-import ontology.learning.sampler.WeightedSubsumptionSampler;
+import ontology.learning.sampler.WeightedABoxInducedSubsumptionSampler;
+import ontology.learning.sampler.ABoxInducedSubsumptionSampler;
 import ontology.learning.utils.Utils;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
@@ -73,9 +74,20 @@ public class PACloOracle {
 
         Set<OWLClassExpression> baseSet = Utils.readBaseSet(baseSetFile, initialOntology);
 
-        SubsumptionSamplingOracle sampler = (args.length > 7 && args[args.length - 1].equals("-uniform"))?
-            new RandomSubsumptionSampler(baseSet) :
-            new WeightedSubsumptionSampler(baseSet, initialOntologyReasoner, false);
+        SubsumptionSamplingOracle sampler = null;
+        if (args.length > 7) {
+            if (args[args.length - 1].equals("-uniform")) {
+                sampler = new RandomSubsumptionSampler(baseSet);
+                logger.info("Uniform sampler");
+            } else if (args[args.length - 1].equals("-weighted")) {
+                sampler = new WeightedABoxInducedSubsumptionSampler(baseSet, initialOntologyReasoner, false);
+                logger.info("Weighted ABox-induced sampler");
+            }
+        }
+        if (sampler == null) {
+            sampler = new ABoxInducedSubsumptionSampler(baseSet, initialOntologyReasoner, false);
+            logger.info("ABox-induced sampler");
+        }
 
         Instant start = Instant.now();
         ILearningFrameworkSubsumption framework = (args.length > 7 && args[7].equals("-upper")) ?
