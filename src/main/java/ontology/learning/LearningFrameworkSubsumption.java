@@ -53,6 +53,7 @@ public class LearningFrameworkSubsumption implements ILearningFrameworkSubsumpti
 										OWLReasoner initialOntologyReasoner) {
 
 		this.baseSet = baseSet;
+		logger.info("Base set: " + baseSet.size());
 
 		this.om = OWLManager.createOWLOntologyManager();
 		this.df = om.getOWLDataFactory();
@@ -128,19 +129,29 @@ public class LearningFrameworkSubsumption implements ILearningFrameworkSubsumpti
 		for (int i = 0; i < k; ++i) {
 			Pair<Set<OWLClassExpression>, OWLClassExpression>  query = this.sampler.sample();
 			samplerQueries++;
+			// logger.info("Sample #" + (i+1) + ": " + query.getKey() + " => " + query.getValue());
+			// logger.info("Sample conclusion #" + (i+1) + ": " + query.getValue());
 
 			Set<OWLClassExpression> premise = query.getKey();
-			Set<OWLClassExpression> closure = implicationClosure(imps, premise);
+/* 			if (premise.contains(query.getValue())) {
+				logger.info("Contained in premise");
+			}
+ */			Set<OWLClassExpression> closure = implicationClosure(imps, premise);
 			boolean hypothesis = closure.contains(df.getOWLNothing()) || closure.contains(query.getValue());
 
 			if (isImplicationValid(premise, query.getValue())) {
 				if (!hypothesis) {
+//					logger.info((i + 1) + "/" + k + " samples; negative counterexample");
 					return closure;
-				}
+				}/*  else {
+					logger.info("Valid: " + premise  + " => " + query.getValue());
+				} */
 			} else if (hypothesis) {
+//				logger.info((i + 1) + "/" + k + " samples; positive counterexample");
 				return complete(premise);
 			}
 		}
+		logger.info(k + " samples; no counterexample");
 		return null;
 	}
 
@@ -256,6 +267,10 @@ public class LearningFrameworkSubsumption implements ILearningFrameworkSubsumpti
 							// update the implication
 							imp.getPremise().retainAll(counterExample);
 							found = true;
+							logger.info("Updated implication: " + 
+										imp.getPremise() + 
+										" => " + 
+										(imp.getConclusion().contains(df.getOWLNothing()) ? "owl:Nothing" : imp.getConclusion()));
 							break;
 						}
 					}
@@ -266,15 +281,17 @@ public class LearningFrameworkSubsumption implements ILearningFrameworkSubsumpti
 					// construct a new implication
 					Implication newImp = new Implication(counterExample, newConclusion, df);
 					if (imps.add(newImp)) {
-						logger.debug("Added implication: " + newImp);
+						logger.info("Added implication: " + newImp.getPremise() + " => owl:Nothing");
 					} else {
 						logger.error("Could not add implication: " + newImp);
 					}
 				}
 			} else {
+				logger.info("Counterexample: " + counterExample);
 				for (Implication imp : imps) {
-					if (counterExample.containsAll(imp.getPremise())) {
+					if (counterExample.containsAll(imp.getPremise()) && !counterExample.containsAll(imp.getConclusion())) {
 						imp.getConclusion().retainAll(counterExample);
+						logger.info("Updated implication: " + imp);
 					}
 				}
 			}
